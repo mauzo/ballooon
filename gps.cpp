@@ -5,6 +5,8 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#include "task.h"
+
 #include "debug.h"
 #include "gps.h"
 #include "panic.h"
@@ -14,7 +16,19 @@
 #define UBX_SYNC_CHAR1  0xB5
 #define UBX_SYNC_CHAR2  0x62
 
-long            gpsCheckTime = 0;
+static void     gps_setup       (void);
+static void     gps_run         (void);
+static void     gps_reset       (void);
+
+task gps_task = {
+    .name       = "GPS",
+    .active     = 0,
+    .when       = 0,
+
+    .setup      = gps_setup,
+    .run        = gps_run,
+    .reset      = gps_reset
+};
 
 static void     UBXchecksum     (unsigned char data);
 static void     checkForLock    (void);
@@ -77,7 +91,7 @@ static unsigned char UBXbuffer[UBX_MAX_PAYLOAD];
 static unsigned char UBXckA;
 static unsigned char UBXckB;
 
-void
+static void
 gps_setup (void)
 {
     Wire.begin(); // Start I2C link to GPS
@@ -97,18 +111,27 @@ gps_setup (void)
     warn("Awaiting confirmation.");
     if (!getUBX_ACK(airborne1g))
         panic("No ACK setting GPS unit to flight mode");
+
+    gps_task.active = 1;
 }
 
-void
-gps_check (void)
+static void
+gps_run (void)
 {
     warn("Requesting NAV-PVT.");
     if (!sendUBX(reqNAV_PVT, sizeof(reqNAV_PVT)))
         panic("Cannot sent NAV-PVT to GOS unit");
     getGPSData();
     checkForLock();
-    gpsCheckTime += 10000;
     printGPSData(); // This would be replaced by a txSentence function.
+
+    gps_task.when = millis() + 10000;
+}
+
+static void
+gps_reset (void)
+{
+    warn("XXX RESET GPS UNIT");
 }
 
 static void 

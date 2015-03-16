@@ -6,6 +6,8 @@
 
 #include <stdarg.h>
 
+#include "task.h"
+
 #include "builtins.h"
 #include "debug.h"
 #include "panic.h"
@@ -29,9 +31,12 @@ panic (const char *fmt, ...)
 void
 panic_catch (void)
 {
+    task    **t;
+
     warn("");
     warn("PANIC: %s", panic_msg);
     warn("");
 
-    /* XXX: attempt to reset everything */
+    for (t = all_tasks; *t; t++)
+        (*t)->reset();
 }
