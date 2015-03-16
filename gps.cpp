@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#include "debug.h"
 #include "gps.h"
 
 #define GPS_ADDR        0x42    // I2C address for uBlox Max7-q
@@ -80,29 +81,29 @@ gps_setup (void)
 {
     Wire.begin(); // Start I2C link to GPS
 
-    Serial.println("Setting IO protocols.");
+    warn("Setting IO protocols.");
     if (!sendUBX(setIOtoUBX, sizeof(setIOtoUBX)))
-        Serial.println("Error sending command.");
+        warn("Error sending command.");
 
-    Serial.println("Awaiting confirmation.");
+    warn("Awaiting confirmation.");
     if (!getUBX_ACK(setIOtoUBX))
-        Serial.println("Error: no confirmation received for port IO command.");
+        warn("Error: no confirmation received for port IO command.");
 
-    Serial.println("Setting flight mode (1g).");
+    warn("Setting flight mode (1g).");
     if (!sendUBX(airborne1g, sizeof(airborne1g)))
-        Serial.println("Error sending command.");
+        warn("Error sending command.");
 
-    Serial.println("Awaiting confirmation.");
+    warn("Awaiting confirmation.");
     if (!getUBX_ACK(airborne1g))
-        Serial.println("Error: no confirmation received for port IO command.");
+        warn("Error: no confirmation received for port IO command.");
 }
 
 void
 gps_check (void)
 {
-    Serial.println("Requesting NAV-PVT.");
+    warn("Requesting NAV-PVT.");
     if (!sendUBX(reqNAV_PVT, sizeof(reqNAV_PVT)))
-        Serial.println("Error sending command.");
+        warn("Error sending command.");
     getGPSData();
     checkForLock();
     gpsCheckTime += 10000;
@@ -124,13 +125,13 @@ checkForLock (void)
         && gpsData.numSats > 4
     ) {
         if (!gpsLock)
-            Serial.println("*****Lock acquired*****");
+            warn("*****Lock acquired*****");
         gpsLock = true;
         lastKnownFix = gpsData;
     }
     else {
         if (gpsLock)
-            Serial.println("*****Lock lost*****");
+            warn("*****Lock lost*****");
         gpsLock = false;
     }
 }
@@ -145,7 +146,7 @@ getGPSData (void)
     while (!EOM && !timeout) {
 	if (millis() > timeoutTime) {
 	    timeout = true;
-	    Serial.println("getGPSData timed out.");
+	    warn("getGPSData timed out.");
 	    return false;
 	}
         // If there is no data available...
@@ -196,7 +197,7 @@ getGPSData (void)
                     // Convert little endian MSB & LSB into integer
                     UBXlength = (byte) (UBXlengthMSB << 8) | UBXlengthLSB;
                     if (UBXlength >= UBX_MAX_PAYLOAD) {
-                        Serial.println("UBX payload length too large (>100");
+                        warn("UBX payload length too large (>100");
                         UBXstate = 0;
                         //  Bad data received so reset and
                         Checksum_A = 0;
@@ -225,7 +226,7 @@ getGPSData (void)
                         EOM = true;
                     } 
                     else {
-                        Serial.println("UBX PAYLOAD BAD CHECKSUM!!");
+                        warn("UBX PAYLOAD BAD CHECKSUM!!");
                         return false;
                     }
 
@@ -252,7 +253,7 @@ getUBX_ACK (uint8_t *MSG)
     uint8_t         ackPacket[10];
     unsigned long   startTime = millis();
 
-    Serial.println("Reading ACK response: ");
+    warn("Reading ACK response: ");
 
     // Construct the expected ACK packet    
     ackPacket[0] = 0xB5;    // header
@@ -275,7 +276,7 @@ getUBX_ACK (uint8_t *MSG)
     while (1) {
         // Timeout if no valid response in 3 seconds
         if (millis() - startTime > 3000) { 
-            Serial.println(" (FAILED!)");
+            warn(" (FAILED!)");
             return false;
         }
 
@@ -297,7 +298,7 @@ getUBX_ACK (uint8_t *MSG)
                     // Test for success
                     if (ackByteID > 9) {
                         // All packets in order!
-                        Serial.println(" (SUCCESS!)");
+                        warn(" (SUCCESS!)");
                         return true;
                     }
                 }
@@ -348,17 +349,12 @@ parseUBX (void)
 static void
 printGPSData (void)
 {
-    Serial.println("\nGPS Data:");
-    sprintf(txString, "Time: %02u:%02u:%02u", gpsData.Hr, gpsData.Min, gpsData.Sec);
-    Serial.println(txString);
-    sprintf(txString, "Lat: %li, Lon: %li", gpsData.Lat, gpsData.Lon);
-    Serial.println(txString);
-    sprintf(txString, "Altitude: %li", gpsData.Alt);
-    Serial.println(txString);
-    sprintf(txString, "Number of satellites used: %u", gpsData.numSats);
-    Serial.println(txString);
-    sprintf(txString, "Type of lock: %u\n", gpsData.fixType);
-    Serial.println(txString);
+    warn("\nGPS Data:");
+    warn("Time: %02u:%02u:%02u", gpsData.Hr, gpsData.Min, gpsData.Sec);
+    warn("Lat: %li, Lon: %li", gpsData.Lat, gpsData.Lon);
+    warn("Altitude: %li", gpsData.Alt);
+    warn("Number of satellites used: %u", gpsData.numSats);
+    warn("Type of lock: %u\n", gpsData.fixType);
 }
 
 // Send a byte array of UBX protocol to the GPS
@@ -376,7 +372,7 @@ sendUBX (uint8_t *MSG, uint8_t len)
         // and start again.
         if (i > 0 && i % BUFFER_LENGTH == 0) {
             if (Wire.endTransmission() != 0) {
-                Serial.println("Error in Wire.endTransmission at buffer=max.");
+                warn("Error in Wire.endTransmission at buffer=max.");
                 return result;
             }
             Wire.beginTransmission(GPS_ADDR);
@@ -384,17 +380,17 @@ sendUBX (uint8_t *MSG, uint8_t len)
 
         Serial.print(MSG[i], HEX);
         if (Wire.write(MSG[i]) != 1) {
-            Serial.println("Error in Wire.write.");
+            warn("Error in Wire.write.");
             return result;
         }
     }
 
     if (Wire.endTransmission() != 0) {
-        Serial.println("Error in Wire.endTransmission.");
+        warn("Error in Wire.endTransmission.");
         return result;
     }
 
-    Serial.println("Success!");
+    warn("Success!");
     // Reached the end, no problems encountered
     return true;
 }
