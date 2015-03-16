@@ -9,15 +9,8 @@
 
 #include <stdarg.h>
 
+#include "builtins.h"
 #include "debug.h"
-
-/* vsnprintf is normally in <stdio.h>, but the Arduino doesn't have
- * stdio so we can't include that. In fact, gcc recognises it as a
- * builtin, so we don't need a header (or an implementation to link
- * with) at all, but relying on this makes me slightly nervous so be
- * more explicit about the fact we are using the builtin.
- */
-#define vsnprintf __builtin_vsnprintf
 
 void
 debug_setup (void)

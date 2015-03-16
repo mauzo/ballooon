@@ -7,6 +7,7 @@
 
 #include "debug.h"
 #include "gps.h"
+#include "panic.h"
 
 #define GPS_ADDR        0x42    // I2C address for uBlox Max7-q
 #define UBX_MAX_PAYLOAD 100     // set to maximum message you want to receive
@@ -83,19 +84,19 @@ gps_setup (void)
 
     warn("Setting IO protocols.");
     if (!sendUBX(setIOtoUBX, sizeof(setIOtoUBX)))
-        warn("Error sending command.");
+        panic("Cannot set GPS unit to UBX");
 
     warn("Awaiting confirmation.");
     if (!getUBX_ACK(setIOtoUBX))
-        warn("Error: no confirmation received for port IO command.");
+        panic("No ACK setting GPS unit to UBX");
 
     warn("Setting flight mode (1g).");
     if (!sendUBX(airborne1g, sizeof(airborne1g)))
-        warn("Error sending command.");
+        panic("Cannot set GPS unit to flight mode");
 
     warn("Awaiting confirmation.");
     if (!getUBX_ACK(airborne1g))
-        warn("Error: no confirmation received for port IO command.");
+        panic("No ACK setting GPS unit to flight mode");
 }
 
 void
@@ -103,7 +104,7 @@ gps_check (void)
 {
     warn("Requesting NAV-PVT.");
     if (!sendUBX(reqNAV_PVT, sizeof(reqNAV_PVT)))
-        warn("Error sending command.");
+        panic("Cannot sent NAV-PVT to GOS unit");
     getGPSData();
     checkForLock();
     gpsCheckTime += 10000;
@@ -146,7 +147,7 @@ getGPSData (void)
     while (!EOM && !timeout) {
 	if (millis() > timeoutTime) {
 	    timeout = true;
-	    warn("getGPSData timed out.");
+	    panic("getGPSData timed out");
 	    return false;
 	}
         // If there is no data available...
@@ -197,7 +198,7 @@ getGPSData (void)
                     // Convert little endian MSB & LSB into integer
                     UBXlength = (byte) (UBXlengthMSB << 8) | UBXlengthLSB;
                     if (UBXlength >= UBX_MAX_PAYLOAD) {
-                        warn("UBX payload length too large (>100");
+                        panic("UBX payload length too large (>100)");
                         UBXstate = 0;
                         //  Bad data received so reset and
                         Checksum_A = 0;
@@ -226,7 +227,7 @@ getGPSData (void)
                         EOM = true;
                     } 
                     else {
-                        warn("UBX PAYLOAD BAD CHECKSUM!!");
+                        panic("UBX PAYLOAD BAD CHECKSUM!!");
                         return false;
                     }
 
@@ -275,10 +276,8 @@ getUBX_ACK (uint8_t *MSG)
 
     while (1) {
         // Timeout if no valid response in 3 seconds
-        if (millis() - startTime > 3000) { 
-            warn(" (FAILED!)");
-            return false;
-        }
+        if (millis() - startTime > 3000)
+            panic("Reading ACK from GPS timed out");
 
         // Make sure data is available to read
         // Request 32 bytes from GPS
@@ -372,7 +371,7 @@ sendUBX (uint8_t *MSG, uint8_t len)
         // and start again.
         if (i > 0 && i % BUFFER_LENGTH == 0) {
             if (Wire.endTransmission() != 0) {
-                warn("Error in Wire.endTransmission at buffer=max.");
+                panic("Error in Wire.endTransmission at buffer=max");
                 return result;
             }
             Wire.beginTransmission(GPS_ADDR);
@@ -380,13 +379,13 @@ sendUBX (uint8_t *MSG, uint8_t len)
 
         Serial.print(MSG[i], HEX);
         if (Wire.write(MSG[i]) != 1) {
-            warn("Error in Wire.write.");
+            panic("Error in Wire.write");
             return result;
         }
     }
 
     if (Wire.endTransmission() != 0) {
-        warn("Error in Wire.endTransmission.");
+        panic("Error in Wire.endTransmission");
         return result;
     }
 

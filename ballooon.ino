@@ -8,15 +8,23 @@
 
 #include "debug.h"
 #include "gps.h"
+#include "panic.h"
 
 void setup()
 {
     debug_setup();
-    gps_setup();
 }
 
 void loop()
 { 
-    if(millis() > gpsCheckTime)
-        gps_check();
+    PANIC_CATCH;
+
+    gps_setup();
+
+    while (1) {
+        if(millis() > gpsCheckTime)
+            gps_check();
+    }
+
+    panic("Fell out of main loop!");
 }
