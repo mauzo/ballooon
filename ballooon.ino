@@ -38,5 +38,5 @@ void loop()
         }
     }
 
-    panic("Fell out of main loop!");
+    panic(F("Fell out of main loop!"));
 }

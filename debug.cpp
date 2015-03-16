@@ -14,13 +14,25 @@ debug_setup (void)
 }
 
 void
-warn (const char *fmt, ...)
+warn (Fstr Fmsg)
 {
-    char        buf[256];
+    Serial.println(Fmsg);
+}
+
+void
+warnx (const char *msg)
+{
+    Serial.print(msg);
+}
+
+void
+warnf (Fstr fmt, ...)
+{
     va_list     ap;
+    char        *buf;
 
     va_start(ap, fmt);
-    vsnprintf(buf, sizeof buf, fmt, ap);
+    buf = vFprintf(fmt, ap);
     va_end(ap);
 
     Serial.println(buf);

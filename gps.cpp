@@ -51,8 +51,6 @@ static unsigned char reqNAV_PVT[] = {
     0xB5, 0x62, 0x01, 0x07, 0x00, 0x00, 0x08, 0x19
 };
 
-static char txString[100];
-
 struct GPS_DATA {
   unsigned char Hr;
   unsigned char Min;
@@ -89,21 +87,21 @@ gps_setup (void)
 {
     Wire.begin(); // Start I2C link to GPS
 
-    warn("Setting IO protocols.");
+    warn(F("Setting IO protocols."));
     if (!sendUBX(setIOtoUBX, sizeof(setIOtoUBX)))
-        panic("Cannot set GPS unit to UBX");
+        panic(F("Cannot set GPS unit to UBX"));
 
-    warn("Awaiting confirmation.");
+    warn(F("Awaiting confirmation."));
     if (!getUBX_ACK(setIOtoUBX))
-        panic("No ACK setting GPS unit to UBX");
+        panic(F("No ACK setting GPS unit to UBX"));
 
-    warn("Setting flight mode (1g).");
+    warn(F("Setting flight mode (1g)."));
     if (!sendUBX(airborne1g, sizeof(airborne1g)))
-        panic("Cannot set GPS unit to flight mode");
+        panic(F("Cannot set GPS unit to flight mode"));
 
-    warn("Awaiting confirmation.");
+    warn(F("Awaiting confirmation."));
     if (!getUBX_ACK(airborne1g))
-        panic("No ACK setting GPS unit to flight mode");
+        panic(F("No ACK setting GPS unit to flight mode"));
 
     gps_task.active = 1;
 }
@@ -111,9 +109,9 @@ gps_setup (void)
 static void
 gps_run (void)
 {
-    warn("Requesting NAV-PVT.");
+    warn(F("Requesting NAV-PVT."));
     if (!sendUBX(reqNAV_PVT, sizeof(reqNAV_PVT)))
-        panic("Cannot sent NAV-PVT to GOS unit");
+        panic(F("Cannot sent NAV-PVT to GOS unit"));
     getGPSData();
     checkForLock();
     printGPSData(); // This would be replaced by a txSentence function.
@@ -124,7 +122,7 @@ gps_run (void)
 static void
 gps_reset (void)
 {
-    warn("XXX RESET GPS UNIT");
+    warn(F("XXX RESET GPS UNIT"));
 }
 
 static void 
@@ -142,13 +140,13 @@ checkForLock (void)
         && gpsData.numSats > 4
     ) {
         if (!gpsLock)
-            warn("*****Lock acquired*****");
+            warn(F("*****Lock acquired*****"));
         gpsLock = true;
         lastKnownFix = gpsData;
     }
     else {
         if (gpsLock)
-            warn("*****Lock lost*****");
+            warn(F("*****Lock lost*****"));
         gpsLock = false;
     }
 }
@@ -163,7 +161,7 @@ getGPSData (void)
     while (!EOM && !timeout) {
 	if (millis() > timeoutTime) {
 	    timeout = true;
-	    panic("getGPSData timed out");
+	    panic(F("getGPSData timed out"));
 	    return false;
 	}
         // If there is no data available...
@@ -214,7 +212,7 @@ getGPSData (void)
                     // Convert little endian MSB & LSB into integer
                     UBXlength = (byte) (UBXlengthMSB << 8) | UBXlengthLSB;
                     if (UBXlength >= UBX_MAX_PAYLOAD) {
-                        panic("UBX payload length too large (>100)");
+                        panic(F("UBX payload length too large (>100)"));
                         UBXstate = 0;
                         //  Bad data received so reset and
                         Checksum_A = 0;
@@ -243,7 +241,7 @@ getGPSData (void)
                         EOM = true;
                     } 
                     else {
-                        panic("UBX PAYLOAD BAD CHECKSUM!!");
+                        panic(F("UBX PAYLOAD BAD CHECKSUM!!"));
                         return false;
                     }
 
@@ -270,7 +268,7 @@ getUBX_ACK (uint8_t *MSG)
     uint8_t         ackPacket[10];
     unsigned long   startTime = millis();
 
-    warn("Reading ACK response: ");
+    warn(F("Reading ACK response: "));
 
     // Construct the expected ACK packet    
     ackPacket[0] = 0xB5;    // header
@@ -293,7 +291,7 @@ getUBX_ACK (uint8_t *MSG)
     while (1) {
         // Timeout if no valid response in 3 seconds
         if (millis() - startTime > 3000)
-            panic("Reading ACK from GPS timed out");
+            panic(F("Reading ACK from GPS timed out"));
 
         // Make sure data is available to read
         // Request 32 bytes from GPS
@@ -313,7 +311,7 @@ getUBX_ACK (uint8_t *MSG)
                     // Test for success
                     if (ackByteID > 9) {
                         // All packets in order!
-                        warn(" (SUCCESS!)");
+                        warn(F(" (SUCCESS!)"));
                         return true;
                     }
                 }
@@ -364,12 +362,12 @@ parseUBX (void)
 static void
 printGPSData (void)
 {
-    warn("\nGPS Data:");
-    warn("Time: %02u:%02u:%02u", gpsData.Hr, gpsData.Min, gpsData.Sec);
-    warn("Lat: %li, Lon: %li", gpsData.Lat, gpsData.Lon);
-    warn("Altitude: %li", gpsData.Alt);
-    warn("Number of satellites used: %u", gpsData.numSats);
-    warn("Type of lock: %u\n", gpsData.fixType);
+    warn(F("\nGPS Data:"));
+    warnf(F("Time: %02u:%02u:%02u"), gpsData.Hr, gpsData.Min, gpsData.Sec);
+    warnf(F("Lat: %li, Lon: %li"), gpsData.Lat, gpsData.Lon);
+    warnf(F("Altitude: %li"), gpsData.Alt);
+    warnf(F("Number of satellites used: %u"), gpsData.numSats);
+    warnf(F("Type of lock: %u\n"), gpsData.fixType);
 }
 
 // Send a byte array of UBX protocol to the GPS
@@ -387,7 +385,7 @@ sendUBX (uint8_t *MSG, uint8_t len)
         // and start again.
         if (i > 0 && i % BUFFER_LENGTH == 0) {
             if (Wire.endTransmission() != 0) {
-                panic("Error in Wire.endTransmission at buffer=max");
+                panic(F("Error in Wire.endTransmission at buffer=max"));
                 return result;
             }
             Wire.beginTransmission(GPS_ADDR);
@@ -395,17 +393,17 @@ sendUBX (uint8_t *MSG, uint8_t len)
 
         Serial.print(MSG[i], HEX);
         if (Wire.write(MSG[i]) != 1) {
-            panic("Error in Wire.write");
+            panic(F("Error in Wire.write"));
             return result;
         }
     }
 
     if (Wire.endTransmission() != 0) {
-        panic("Error in Wire.endTransmission");
+        panic(F("Error in Wire.endTransmission"));
         return result;
     }
 
-    warn("Success!");
+    warn(F("Success!"));
     // Reached the end, no problems encountered
     return true;
 }
