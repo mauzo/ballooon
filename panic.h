@@ -5,8 +5,6 @@
 #ifndef __PANIC_H
 #define __PANIC_H
 
-#include <setjmp.h>
-
 extern jmp_buf  panic_jb;
 
 void        panic           (const char *fmt, ...);

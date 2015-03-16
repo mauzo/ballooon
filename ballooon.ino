@@ -6,11 +6,7 @@
 /* This has to be here or the wretched GUI won't link in the library */
 #include <Wire.h>
 
-#include "task.h"
-
-#include "debug.h"
-#include "gps.h"
-#include "panic.h"
+#include "ballooon.h"
 
 task *all_tasks[] = {
     &gps_task,

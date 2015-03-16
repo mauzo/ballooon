@@ -2,15 +2,7 @@
  * Handle can't-happen situations with longjmp.
  */
 
-#include <Arduino.h>
-
-#include <stdarg.h>
-
-#include "task.h"
-
-#include "builtins.h"
-#include "debug.h"
-#include "panic.h"
+#include "ballooon.h"
 
 jmp_buf     panic_jb;
 

@@ -2,14 +2,7 @@
 // Functions for talking to the GPS unit over I2C
 //
 
-#include <Arduino.h>
-#include <Wire.h>
-
-#include "task.h"
-
-#include "debug.h"
-#include "gps.h"
-#include "panic.h"
+#include "ballooon.h"
 
 #define GPS_ADDR        0x42    // I2C address for uBlox Max7-q
 #define UBX_MAX_PAYLOAD 100     // set to maximum message you want to receive

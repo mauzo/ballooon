@@ -4,13 +4,7 @@
  * For the moment, debugging goes via the serial port.
  */
 
-#include <Arduino.h>
-#include <HardwareSerial.h>
-
-#include <stdarg.h>
-
-#include "builtins.h"
-#include "debug.h"
+#include "ballooon.h"
 
 void
 debug_setup (void)
