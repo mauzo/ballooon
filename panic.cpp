@@ -6,10 +6,10 @@
 
 jmp_buf         panic_jb;
 
-static Fstr     panic_msg;
+static fstr     panic_msg;
 
 void
-panic (Fstr msg)
+panic (fstr msg)
 {
     panic_msg = msg;
     longjmp(panic_jb, 1);
@@ -20,9 +20,8 @@ panic_catch (void)
 {
     task    **t;
 
-    warnx(strFdup(F("\r\nPANIC: ")));
-    warnx(strFdup(panic_msg));
-    warnx(strFdup(F("\r\n")));
+    warnx("\r\nPANIC: ");
+    warn(panic_msg);
 
     for (t = all_tasks; *t; t++)
         (*t)->reset();

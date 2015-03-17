@@ -14,9 +14,11 @@ debug_setup (void)
 }
 
 void
-warn (Fstr Fmsg)
+warn (fstr fmsg)
 {
-    Serial.println(Fmsg);
+    pad_fstr(fmsg);
+    warnx(pad);
+    warnx("\r\n");
 }
 
 void
@@ -26,14 +28,14 @@ warnx (const char *msg)
 }
 
 void
-warnf (Fstr fmt, ...)
+warnf (fstr fmt, ...)
 {
     va_list     ap;
-    char        *buf;
 
     va_start(ap, fmt);
-    buf = vFprintf(fmt, ap);
+    pad_vfform(fmt, ap);
     va_end(ap);
 
-    Serial.println(buf);
+    warnx(pad);
+    warnx("\r\n");
 }

@@ -1,1 +1,4 @@
 build-uno/
+*.s
+*.i
+*.ii

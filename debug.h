@@ -6,8 +6,8 @@
 #define __DEBUG_H
 
 void    debug_setup     (void);
-void    warn            (Fstr msg);
-void    warnf           (Fstr fmt, ...);
+void    warn            (fstr msg);
+void    warnf           (fstr fmt, ...);
 void    warnx           (const char *msg);
 
 #endif

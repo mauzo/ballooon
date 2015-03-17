@@ -7,7 +7,7 @@
 
 extern jmp_buf  panic_jb;
 
-void        panic           (Fstr msg);
+void        panic           (fstr msg);
 void        panic_catch     (void);
 
 /* This has to be a macro, because setjmp needs to be called directly
