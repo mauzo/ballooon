@@ -7,11 +7,7 @@
 
 typedef byte ubx_addr;
 
-typedef struct ubx_pkt {
-    uint16_t    type;
-    uint16_t    len;
-    byte        *dat;
-} ubx_pkt;
+#include "ubx_pkt.h"
 
 void    ubx_send_packet     (ubx_addr adr, ubx_pkt *pkt);
 void    ubx_send_with_ack   (ubx_addr adr, ubx_pkt *pkt);

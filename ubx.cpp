@@ -13,9 +13,7 @@
 
 typedef struct ubx_pad {
     uint16_t    sync;
-    uint16_t    type;
-    uint16_t    len;
-    uint8_t     dat[1];
+    ubx_pkt     pkt;
 } ubx_pad;
 
 #define UBX_EXTRA   8
@@ -32,7 +30,7 @@ ubx_cksum (byte set)
     uint16_t    l;
     byte        a = 0, b = 0;
 
-    l = ((ubx_pad *)pad)->len;
+    l = ((ubx_pad *)pad)->pkt.len;
     for (p = pad + 2; p < pad + l; p++) {
         a += (byte)*p;
         b += a;
@@ -56,10 +54,10 @@ ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
     if (pkt->len + UBX_EXTRA > PADSIZ)
         panic(F("UBX tx packet too long"));
 
-    upad->sync  = UBX_SYNC;
-    upad->type  = pkt->type;
-    upad->len   = pkt->len;
-    memcpy(upad->dat, pkt->dat, pkt->len);
+    upad->sync      = UBX_SYNC;
+    upad->pkt.type  = pkt->type;
+    upad->pkt.len   = pkt->len;
+    memcpy(upad->pkt.dat, pkt->dat, pkt->len);
     ubx_cksum(1);
 
     if (twi_writeTo(adr, (byte*)pad, pkt->len + 8, 1, 1))
@@ -85,12 +83,12 @@ ubx_send_with_reply (ubx_addr adr, ubx_pkt *pkt, uint16_t rlen)
 void
 ubx_recv_ack (ubx_addr adr, ubx_pkt *pkt)
 {
-    ubx_pkt ack;
+    ubx_ack ack;
 
     ack.len = 2;
-    ubx_recv_packet(adr, &ack);
+    ubx_recv_packet(adr, (ubx_pkt *)&ack);
 
-    if (ack.type != UBX_ACK || *(uint16_t*)(ack.dat) != pkt->type)
+    if (ack.type != UBX_ACK || ack.ack_type != pkt->type)
         panic(F("UBX didn't get expected ACK"));
 }
 
@@ -115,7 +113,7 @@ ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
      * (readFrom should have a sendNack parameter as well as sendStop.)
      */
     got = twi_readFrom(adr, (byte*)pad, want, 1);
-    if (got != want || upad->len != pkt->len)
+    if (got != want || upad->pkt.len != pkt->len)
         panic(F("UBX rx packet length incorrect"));
     
     if (upad->sync != UBX_SYNC)
@@ -123,6 +121,6 @@ ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
 
     ubx_cksum(0);
 
-    pkt->type   = upad->type;
-    pkt->dat    = upad->dat;
+    pkt->type = upad->pkt.type;
+    memcpy(pkt->dat, upad->pkt.dat, pkt->len);
 }
