@@ -18,5 +18,6 @@
 #include "panic.h"
 
 #include "gps.h"
+#include "ubx.h"
 
 #endif

@@ -8,14 +8,14 @@
 #define TASK_INACTIVE   (-1L)
 #define TASK_START      (0L)
 
-struct task {
+typedef struct task {
     const char  *name;
     long        when;
 
     void        (*setup)(void);
     void        (*run)(long now);
     void        (*reset)(void);
-};
+} task;
 
 extern task *all_tasks[];
 
