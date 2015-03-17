@@ -10,13 +10,12 @@
 #define UBX_SYNC_CHAR2  0x62
 
 static void     gps_setup       (void);
-static void     gps_run         (void);
+static void     gps_run         (long now);
 static void     gps_reset       (void);
 
 task gps_task = {
     .name       = "GPS",
-    .active     = 0,
-    .when       = 0,
+    .when       = TASK_INACTIVE,
 
     .setup      = gps_setup,
     .run        = gps_run,
@@ -103,11 +102,11 @@ gps_setup (void)
     if (!getUBX_ACK(airborne1g))
         panic(F("No ACK setting GPS unit to flight mode"));
 
-    gps_task.active = 1;
+    gps_task.when = TASK_START;
 }
 
 static void
-gps_run (void)
+gps_run (long now)
 {
     warn(F("Requesting NAV-PVT."));
     if (!sendUBX(reqNAV_PVT, sizeof(reqNAV_PVT)))
@@ -116,13 +115,14 @@ gps_run (void)
     checkForLock();
     printGPSData(); // This would be replaced by a txSentence function.
 
-    gps_task.when = millis() + 10000;
+    gps_task.when = now + 10000;
 }
 
 static void
 gps_reset (void)
 {
     warn(F("XXX RESET GPS UNIT"));
+    gps_task.when = TASK_START;
 }
 
 static void 

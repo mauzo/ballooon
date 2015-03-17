@@ -21,7 +21,7 @@ void setup()
 void loop()
 { 
     task  **t;
-    long    now;
+    long    now, w;
 
     for (t = all_tasks; *t; t++)
         (*t)->setup();
@@ -31,10 +31,11 @@ void loop()
     while (1) {
         now = millis();
         for (t = all_tasks; *t; t++) {
-            if (!(*t)->active)
+            w = (*t)->when;
+            if (w == TASK_INACTIVE)
                 continue;
-            if (now > (*t)->when)
-                (*t)->run();
+            if (now > w)
+                (*t)->run(now);
         }
     }
 

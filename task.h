@@ -5,13 +5,15 @@
 #ifndef __TASK_H
 #define __TASK_H
 
+#define TASK_INACTIVE   (-1L)
+#define TASK_START      (0L)
+
 struct task {
     const char  *name;
-    boolean     active;
     long        when;
 
     void        (*setup)(void);
-    void        (*run)(void);
+    void        (*run)(long now);
     void        (*reset)(void);
 };
 
