@@ -4,7 +4,7 @@
 
 #include "ballooon.h"
 
-#include <twi.h>
+#include <utility/twi.h>
 
 /* Both the AVR and the UBX protocol are little-endian, so there's no
  * need for conversions. We treat the class/ID as a two-byte type field,
@@ -26,11 +26,12 @@ static void     ubx_cksum   (byte set);
 static void
 ubx_cksum (byte set)
 {
+    ubx_pad *upad   = (ubx_pad *)pad;
     char        *p;
     uint16_t    l;
     byte        a = 0, b = 0;
 
-    l = ((ubx_pad *)pad)->pkt.len;
+    l = upad->pkt.len;
     for (p = pad + 2; p < pad + l; p++) {
         a += (byte)*p;
         b += a;

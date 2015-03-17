@@ -18,6 +18,9 @@ include ./Arduino.mk
 %.s: %.cpp
 	$(CXX) -S $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
+%.s: build-uno/%.cpp
+	$(CXX) -S $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
+
 %.i: %.c
 	$(CC) -E $(CPPFLAGS) $(CFLAGS) $< > $@
 

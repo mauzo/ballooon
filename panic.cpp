@@ -8,7 +8,7 @@ jmp_buf         panic_jb;
 
 static fstr     panic_msg;
 
-void
+EXT_C void
 panic (fstr msg)
 {
     panic_msg = msg;

@@ -9,19 +9,6 @@
 #define UBX_SYNC_CHAR1  0xB5
 #define UBX_SYNC_CHAR2  0x62
 
-static void     gps_setup       (void);
-static void     gps_run         (long now);
-static void     gps_reset       (void);
-
-task gps_task = {
-    .name       = "GPS",
-    .when       = TASK_INACTIVE,
-
-    .setup      = gps_setup,
-    .run        = gps_run,
-    .reset      = gps_reset
-};
-
 static void     UBXchecksum     (unsigned char data);
 static void     checkForLock    (void);
 static boolean  getGPSData      (void);
@@ -37,6 +24,7 @@ static unsigned char setIOtoUBX[] = {
     0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 
     0x00, 0x00, 0xA0, 0x96
 };
+
 static unsigned char airborne1g[] = {
     0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 
     0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 

@@ -7,8 +7,6 @@
 
 typedef byte ubx_addr;
 
-#include "ubx_pkt.h"
-
 void    ubx_send_packet     (ubx_addr adr, ubx_pkt *pkt);
 void    ubx_send_with_ack   (ubx_addr adr, ubx_pkt *pkt);
     /* rlen is the expected payload length of the reply */
