@@ -29,8 +29,9 @@
 })
 #endif
 
-/* Find the address of a member of s, maintaining the top bit (&s->m) */
-#define mF(s, m) ((s) + offsetof(typeof(*(s)), m))
+/* This is &s->m, propogating the top bit of the address. This doesn't
+ * actually read memory (or flash), it's just address arithmetic. */
+#define mF(s, m) (isF(s) ? pF(aF(s)->m) : &s->m)
 
 /* Put a constant string into flash and return its address. This is NOT
  * COMPATIBLE with the F() macro provided by the Arduino headers. Use
