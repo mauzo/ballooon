@@ -49,6 +49,7 @@ static const ubx_cfg_nav5 set_nav_mode = {
     .mask           = UBX_CFGNAV5_MASK_ALL,
     .dyn_model      = UBX_CFGNAV5_DYN_AIRBORNE1G,
     .fix_mode       = UBX_CFGNAV5_FIX_AUTO,
+    .fixed_alt_var  = 10000,
     .min_elev       = 5,
     .p_dop          = 250,
     .t_dop          = 250,
@@ -108,9 +109,9 @@ gps_fetch_data (void)
         gps_last_fix.min    = nav.min;
         gps_last_fix.sec    = nav.sec;
     }
-    gps_last_fix.lat    = nav.lat;
-    gps_last_fix.lon    = nav.lon;
-    gps_last_fix.alt    = nav.height;
+    gps_last_fix.lat    = nav.lat / 100;
+    gps_last_fix.lon    = nav.lon / 100;
+    gps_last_fix.alt    = nav.height / 100;
 
     gps_last_fix.when       = millis();
     gps_last_fix.nsats      = nav.num_sv;

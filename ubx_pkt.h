@@ -17,13 +17,17 @@ typedef struct {
     uint8_t     dat[1];
 } ubx_pkt;
 
-#define UBX_TYP_ACK 0x0501
+/* The type values are all backwards (0x id class), because the AVR is
+ * little-endian. (I should probably be using htons.)
+ */
+
+#define UBX_TYP_ACK 0x0105
 typedef struct {
     UBX_HEAD
     uint16_t    ack_type;
 } ubx_ack;
 
-#define UBX_TYP_CFG_PRT 0x0600
+#define UBX_TYP_CFG_PRT 0x0006
 typedef struct {
     UBX_HEAD
     uint8_t     port;
@@ -53,7 +57,7 @@ typedef struct {
     uint16_t    reserved5;
 } ubx_cfg_prt;
 
-#define UBX_TYP_CFG_NAV5 0x0624
+#define UBX_TYP_CFG_NAV5 0x2406
 typedef struct {
     UBX_HEAD
     uint16_t    mask;
@@ -95,7 +99,7 @@ typedef struct {
     uint32_t    reserved4;
 } ubx_cfg_nav5;
 
-#define UBX_TYP_NAV_PVT 0x0107
+#define UBX_TYP_NAV_PVT 0x0701
 typedef struct {
     UBX_HEAD
     uint32_t    iTOW;
