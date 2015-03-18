@@ -16,9 +16,8 @@ typedef struct ubx_pad {
     ubx_pkt     pkt;
 } ubx_pad;
 
-#define UBX_EXTRA   8
-
 #define UBX_SYNC    0xb562
+#define UBX_EXTRA   (UBX_HEADSIZ + 4)
 
 static void     ubx_cksum   (byte set);
 
@@ -40,7 +39,7 @@ ubx_cksum (byte set)
     }
     else {
         if (p[0] != a || p[1] != b)
-            panic(F("UBX packet checksum failed"));
+            panic(sF("UBX packet checksum failed"));
     }
 }
 
@@ -48,18 +47,17 @@ void
 ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
 {
     ubx_pad *upad   = (ubx_pad *)pad;
+    uint16_t len    = dF(pkt).len;
 
-    if (pkt->len + UBX_EXTRA > PADSIZ)
-        panic(F("UBX tx packet too long"));
+    if (len + UBX_EXTRA > PADSIZ)
+        panic(sF("UBX tx packet too long"));
 
-    upad->sync      = UBX_SYNC;
-    upad->pkt.type  = pkt->type;
-    upad->pkt.len   = pkt->len;
-    memcpy(upad->pkt.dat, pkt->dat, pkt->len);
+    upad->sync = UBX_SYNC;
+    memcpyF(&upad->pkt, pkt, len + UBX_HEADSIZ);
     ubx_cksum(1);
 
-    if (twi_writeTo(adr, (byte*)pad, pkt->len + 8, 1, 1))
-        panic(F("TWI write failed"));
+    if (twi_writeTo(adr, (byte*)pad, len + UBX_EXTRA, 1, 1))
+        panic(sF("TWI write failed"));
 }
 
 void
@@ -70,8 +68,8 @@ ubx_send_with_ack (ubx_addr adr, ubx_pkt *pkt)
     ubx_send_packet(adr, pkt);
     ubx_recv_packet(adr, (ubx_pkt *)&ack);
 
-    if (ack.type != UBX_TYP_ACK || ack.ack_type != pkt->type)
-        panic(F("UBX didn't get expected ACK"));
+    if (ack.type != UBX_TYP_ACK || ack.ack_type != dF(pkt).type)
+        panic(sF("UBX didn't get expected ACK"));
 }
 
 void
@@ -89,9 +87,6 @@ ubx_setup (void)
     twi_init();
 }
 
-/* Receive a packet into ubx_pkt; the payload is stored in the pad. 
- * pkt->len must be set on input to the expected length of the packet.
- */
 void
 ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
 {
@@ -100,7 +95,7 @@ ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
 
     want = pkt->len + UBX_EXTRA;
     if (want > PADSIZ)
-        panic(F("UBX rx packet too long"));
+        panic(sF("UBX rx packet too long"));
 
     /* It's impossible to do this right with the twi.c interface. What I
      * want to do is read the first part of the packet, check the
@@ -111,10 +106,10 @@ ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
      */
     got = twi_readFrom(adr, (byte*)pad, want, 1);
     if (got != want || upad->pkt.len != pkt->len)
-        panic(F("UBX rx packet length incorrect"));
+        panic(sF("UBX rx packet length incorrect"));
     
     if (upad->sync != UBX_SYNC)
-        panic(F("UBX rx lost sync"));
+        panic(sF("UBX rx lost sync"));
 
     ubx_cksum(0);
 

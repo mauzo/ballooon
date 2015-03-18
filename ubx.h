@@ -7,9 +7,11 @@
 
 typedef byte ubx_addr;
 
+
 void    ubx_send_packet     (ubx_addr adr, ubx_pkt *pkt);
 void    ubx_send_with_ack   (ubx_addr adr, ubx_pkt *pkt);
-    /* rlen is the expected payload length of the reply */
+    /* rlen is the expected payload length of the reply. pkt is reused
+     * for the reply, so it must not be in flash.  */
 void    ubx_send_with_reply (ubx_addr adr, ubx_pkt *pkt, uint16_t rlen);
 void    ubx_setup           (void);
     /* pkt->len must be set to the expected length */

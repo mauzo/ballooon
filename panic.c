@@ -4,12 +4,12 @@
 
 #include "ballooon.h"
 
-jmp_buf         panic_jb;
+jmp_buf panic_jb;
 
-static fstr     panic_msg;
+static const char *panic_msg;
 
-EXT_C void
-panic (fstr msg)
+void
+panic (const char *msg)
 {
     panic_msg = msg;
     longjmp(panic_jb, 1);
@@ -20,7 +20,7 @@ panic_catch (void)
 {
     task    **t;
 
-    warnx("\r\nPANIC: ");
+    warnx(sF("\r\nPANIC: "));
     warn(panic_msg);
 
     for (t = all_tasks; *t; t++)

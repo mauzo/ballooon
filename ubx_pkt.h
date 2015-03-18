@@ -9,8 +9,10 @@
     uint16_t    type; \
     uint16_t    len;
 
+#define UBX_HEADSIZ 4
+
 /* The length field should not count the header */
-#define ubx_len(t) (sizeof(t) - 4)
+#define ubx_len(t) (sizeof(t) - UBX_HEADSIZ)
 
 typedef struct {
     UBX_HEAD

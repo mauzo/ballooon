@@ -7,8 +7,8 @@
 
 extern jmp_buf  panic_jb;
 
-EXT_C void  panic           (fstr msg);
-void        panic_catch     (void);
+EXT_C void      panic           (const char *msg);
+EXT_C void      panic_catch     (void);
 
 /* This has to be a macro, because setjmp needs to be called directly
  * from loop() or it doesn't work. The do..while(0) is a standard trick

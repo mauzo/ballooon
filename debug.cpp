@@ -14,26 +14,29 @@ debug_setup (void)
 }
 
 EXT_C void
-warn (fstr fmsg)
+warn (const char *msg)
 {
-    pad_fstr(fmsg);
-    warnx(pad);
+    warnx(msg);
     warnx("\r\n");
 }
 
 EXT_C void
 warnx (const char *msg)
 {
+    if (isF(msg)) {
+        strlcpyF(pad, msg, PADSIZ);
+        msg = pad;
+    }
     Serial.print(msg);
 }
 
 EXT_C void
-warnf (fstr fmt, ...)
+warnf (const char *fmt, ...)
 {
     va_list     ap;
 
     va_start(ap, fmt);
-    pad_vfform(fmt, ap);
+    pad_vform(fmt, ap);
     va_end(ap);
 
     warnx(pad);

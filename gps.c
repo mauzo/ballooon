@@ -27,7 +27,7 @@ task    gps_task        = {
     .reset      = gps_reset
 };
 
-static const ubx_cfg_prt set_io_mode = {
+static const __flash ubx_cfg_prt set_io_mode = {
     .type           = UBX_TYP_CFG_PRT,
     .len            = ubx_len(ubx_cfg_prt),
 
@@ -37,7 +37,7 @@ static const ubx_cfg_prt set_io_mode = {
     .out_proto_mask = UBX_CFGPRT_PROTO_UBX,
 };
 
-static const ubx_cfg_nav5 set_nav_mode = {
+static const __flash ubx_cfg_nav5 set_nav_mode = {
     .type           = UBX_TYP_CFG_NAV5,
     .len            = ubx_len(ubx_cfg_nav5),
 
@@ -52,7 +52,7 @@ static const ubx_cfg_nav5 set_nav_mode = {
     .t_acc          = 300,
 };
 
-static const ubx_cfg_rst reset_gps = {
+static const __flash ubx_cfg_rst reset_gps = {
     .type           = UBX_TYP_CFG_RST,
     .len            = ubx_len(ubx_cfg_rst),
 
@@ -65,8 +65,8 @@ gps_setup (void)
 {
     ubx_setup();
 
-    ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)&set_io_mode);
-    ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)&set_nav_mode);
+    ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)pF(set_io_mode));
+    ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)pF(set_nav_mode));
 
     gps_task.when = TASK_START;
 }
@@ -77,7 +77,7 @@ gps_run (long now)
     if (gps_fetch_data())
         gps_print_data();
     else
-        warn(F("GPS fetch failed"));
+        warn(sF("GPS fetch failed"));
 
     gps_task.when = now + 10000;
 }
@@ -87,7 +87,7 @@ gps_reset (void)
 {
     /* XXX I don't know if this gets an ACK or not. There's nothing in
      * the documentation to suggest it doesn't. */
-    ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)&reset_gps);
+    ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)pF(reset_gps));
 
     /* This will also reinitialise the TWI stuff, which is probably a
      * good idea, unless it breaks something... */
@@ -108,7 +108,7 @@ gps_fetch_data (void)
     ubx_send_with_reply(GPS_ADDR, (ubx_pkt *)&nav, ubx_len(nav));
 
     if (nav.type != UBX_TYP_NAV_PVT)
-        panic(F("GPS got wrong response to NAV-PVT"));
+        panic(sF("GPS got wrong response to NAV-PVT"));
 
     if (!gps_validate(&nav))
         return 0;
@@ -132,13 +132,13 @@ gps_fetch_data (void)
 void
 gps_print_data (void)
 {
-    warn(F("\r\nGPS Data:"));
-    warnf(F("Time: %02u:%02u:%02u"),
+    warn(sF("\r\nGPS Data:"));
+    warnf(sF("Time: %02u:%02u:%02u"),
         gps_last_fix.hr, gps_last_fix.min, gps_last_fix.sec);
-    warnf(F("Lat: %li, Lon: %li"), gps_last_fix.lat, gps_last_fix.lon);
-    warnf(F("Altitude: %li"), gps_last_fix.alt);
-    warnf(F("Number of satellites used: %u"), gps_last_fix.nsats);
-    warnf(F("Type of lock: %u\n"), gps_last_fix.fix_type);
+    warnf(sF("Lat: %li, Lon: %li"), gps_last_fix.lat, gps_last_fix.lon);
+    warnf(sF("Altitude: %li"), gps_last_fix.alt);
+    warnf(sF("Number of satellites used: %u"), gps_last_fix.nsats);
+    warnf(sF("Type of lock: %u\n"), gps_last_fix.fix_type);
 }
 
 static byte

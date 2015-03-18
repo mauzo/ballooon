@@ -7,18 +7,21 @@
 
 #include <setjmp.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 
+#include <avr/pgmspace.h>
+
+#include <Arduino.h>
+
 #ifdef __cplusplus
-#  include <Arduino.h>
-#  include <Wire.h>
 #  define EXT_C extern "C"
 #else
-#  include "cxxcompat.h"
 #  define EXT_C
 #endif
 
+#include "flash.h"
 #include "pad.h"
 
 #include "debug.h"
