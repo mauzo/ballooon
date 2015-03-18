@@ -12,7 +12,7 @@ byte
 pad_fstr (fstr src)
 {
     long len;
-    const char PROGMEM *pstr = (const char PROGMEM *)src;
+    const char *pstr = (const char *)src;
 
     len = strlcpy_P(pad, pstr, PADSIZ);
     return len < PADSIZ ? len : 0xff;
@@ -43,11 +43,11 @@ pad_form (const char *fmt, ...)
 byte
 pad_vfform (fstr fs, va_list ap)
 {
-    const char PROGMEM  *pstr;
-    char                fmt[PADSIZ];
-    long                len;
+    const char  *pstr;
+    char        fmt[PADSIZ];
+    long        len;
 
-    pstr = (const char PROGMEM *)fs;
+    pstr = (const char *)fs;
     len = strlcpy_P(fmt, pstr, PADSIZ);
     if (len > PADSIZ) {
         *pad = 0;

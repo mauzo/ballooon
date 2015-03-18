@@ -20,7 +20,7 @@ typedef const __flash pstr fstr;
     const __flash struct { \
         unsigned char len; \
         unsigned char dat[sizeof((unsigned char[]){__VA_ARGS__})]; \
-    } n = { sizeof((unsigned char[]){__VA_ARGS__}), __VA_ARGS__ }
+    } n = { sizeof((unsigned char[]){__VA_ARGS__}), {__VA_ARGS__} }
 
 static char buf[81];
 
@@ -36,7 +36,7 @@ fstrdup(fstr *s)
 
     l = s->len;
     if (l > sizeof buf)
-        panic(&toobig);
+        panic((fstr *)&toobig);
     for (i = 0; i < l; i++)
         buf[i] = s->dat[i];
 
@@ -46,6 +46,6 @@ fstrdup(fstr *s)
 void
 foo (void)
 {
-    fstrdup(&setIOtoUBX);
+    fstrdup((fstr *)&setIOtoUBX);
     panic(F("foo"));
 }
