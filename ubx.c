@@ -82,6 +82,12 @@ ubx_send_with_reply (ubx_addr adr, ubx_pkt *pkt, uint16_t rlen)
 }
 
 void
+ubx_setup (void)
+{
+    twi_init();
+}
+
+void
 ubx_recv_ack (ubx_addr adr, ubx_pkt *pkt)
 {
     ubx_ack ack;

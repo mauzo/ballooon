@@ -13,7 +13,7 @@ debug_setup (void)
     Serial.begin(9600);
 }
 
-void
+EXT_C void
 warn (fstr fmsg)
 {
     pad_fstr(fmsg);
@@ -21,13 +21,13 @@ warn (fstr fmsg)
     warnx("\r\n");
 }
 
-void
+EXT_C void
 warnx (const char *msg)
 {
     Serial.print(msg);
 }
 
-void
+EXT_C void
 warnf (fstr fmt, ...)
 {
     va_list     ap;

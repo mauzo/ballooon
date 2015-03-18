@@ -15,13 +15,8 @@
 #  include <Wire.h>
 #  define EXT_C extern "C"
 #else
+#  include "cxxcompat.h"
 #  define EXT_C
-typedef uint8_t byte;
-typedef const __flash char __FlashStringHelper;
-#  define F(s) ({ \
-    static const __flash char __F[] = s; \
-    (__FlashStringHelper *)&__F; \
-})
 #endif
 
 #include "pad.h"

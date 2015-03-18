@@ -9,6 +9,9 @@
     uint16_t    type; \
     uint16_t    len;
 
+/* The length field should not count the header */
+#define ubx_len(t) (sizeof(t) - 4)
+
 typedef struct {
     UBX_HEAD
     uint8_t     dat[1];
@@ -61,6 +64,7 @@ typedef struct {
 #define UBX_CFGNAV5_MASK_TIME       (1<<5)
 #define UBX_CFGNAV5_MASK_STATICHOLD (1<<6)
 #define UBX_CFGNAV5_MASK_DGPS       (1<<7)
+#define UBX_CFGNAV5_MASK_ALL        0xff
     uint8_t     dyn_model;
 #define UBX_CFGNAV5_DYN_PORTABLE    0
 #define UBX_CFGNAV5_DYN_STATIONARY  2
@@ -108,6 +112,12 @@ typedef struct {
     uint32_t    t_acc;
     int32_t     nano;
     uint8_t     fix_type;
+#define UBX_NAVPVT_FIX_NONE     0
+#define UBX_NAVPVT_FIX_DRECK    1
+#define UBX_NAVPVT_FIX_2D       2
+#define UBX_NAVPVT_FIX_3D       3
+#define UBX_NAVPVT_FIX_BOTH     4
+#define UBX_NAVPVT_FIX_TIME     5
     int8_t      flags;
 #define UBX_NAVPVT_FLAGS_GNSSOK (1<<0)
 #define UBX_NAVPVT_FLAGS_DIFF   (1<<1)

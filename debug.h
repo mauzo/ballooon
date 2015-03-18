@@ -5,9 +5,9 @@
 #ifndef __DEBUG_H
 #define __DEBUG_H
 
-void    debug_setup     (void);
-void    warn            (fstr msg);
-void    warnf           (fstr fmt, ...);
-void    warnx           (const char *msg);
+void        debug_setup     (void);
+EXT_C void  warn            (fstr msg);
+EXT_C void  warnf           (fstr fmt, ...);
+EXT_C void  warnx           (const char *msg);
 
 #endif
