@@ -25,14 +25,12 @@ static void     ubx_cksum   (byte set);
 static void
 ubx_cksum (byte set)
 {
-    ubx_pad *upad   = (ubx_pad *)pad;
-    char        *p;
-    uint16_t    l;
-    byte        a = 0, b = 0;
+    ubx_pad *upad = (ubx_pad *)pad;
+    byte    *p, *e, a = 0, b = 0;
 
-    l = upad->pkt.len;
-    for (p = pad + 2; p < pad + l; p++) {
-        a += (byte)*p;
+    e = upad->pkt.dat + upad->pkt.len;
+    for (p = (byte *)&upad->pkt; p < e; p++) {
+        a += *p;
         b += a;
     }
 
@@ -67,8 +65,13 @@ ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
 void
 ubx_send_with_ack (ubx_addr adr, ubx_pkt *pkt)
 {
+    ubx_ack ack = { .len = ubx_len(ubx_ack) };
+
     ubx_send_packet(adr, pkt);
-    ubx_recv_ack(adr, pkt);
+    ubx_recv_packet(adr, (ubx_pkt *)&ack);
+
+    if (ack.type != UBX_TYP_ACK || ack.ack_type != pkt->type)
+        panic(F("UBX didn't get expected ACK"));
 }
 
 void
@@ -84,18 +87,6 @@ void
 ubx_setup (void)
 {
     twi_init();
-}
-
-void
-ubx_recv_ack (ubx_addr adr, ubx_pkt *pkt)
-{
-    ubx_ack ack;
-
-    ack.len = 2;
-    ubx_recv_packet(adr, (ubx_pkt *)&ack);
-
-    if (ack.type != UBX_TYP_ACK || ack.ack_type != pkt->type)
-        panic(F("UBX didn't get expected ACK"));
 }
 
 /* Receive a packet into ubx_pkt; the payload is stored in the pad. 
