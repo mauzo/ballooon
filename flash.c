@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 typedef struct pstr {
     unsigned char   len;
     char            dat[1];
@@ -43,9 +45,29 @@ fstrdup(fstr *s)
     return l;
 }
 
+extern volatile unsigned char reg;
+
+typedef intptr_t gptr;
+#define GPTR(a, f) (((gptr)(a)) | (!!(f)) << 15)
+#define GPTR_REF(g, t) ({ \
+    const t *__r; \
+    const __flash t *__f; \
+    ((g & 0x800) \
+        ? (__r = (t *)((g) & 0x7fff), *__r) \
+        : (__f = (t *)((g) & 0x7fff), *__f)); \
+})
+
+void
+iovec (gptr adr)
+{
+    reg = GPTR_REF(adr, unsigned char);
+}
+
 void
 foo (void)
 {
     fstrdup((fstr *)&setIOtoUBX);
     panic(F("foo"));
+    iovec(GPTR(F("bar"), 1));
+    iovec(GPTR("baz", 0));
 }
