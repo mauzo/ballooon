@@ -57,6 +57,14 @@ static const ubx_cfg_nav5 set_nav_mode = {
     .t_acc          = 300,
 };
 
+static const ubx_cfg_rst reset_gps = {
+    .type           = UBX_TYP_CFG_RST,
+    .len            = ubx_len(ubx_cfg_rst),
+
+    .nav_bbr_mask   = UBX_CFGRST_BBR_HOT,
+    .reset_mode     = UBX_CFGRST_RST_SOFT,
+};
+
 static void
 gps_setup (void)
 {
@@ -82,7 +90,13 @@ gps_run (long now)
 static void
 gps_reset (void)
 {
-    gps_task.when = TASK_START;
+    /* XXX I don't know if this gets an ACK or not. There's nothing in
+     * the documentation to suggest it doesn't. */
+    ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)&reset_gps);
+
+    /* This will also reinitialise the TWI stuff, which is probably a
+     * good idea, unless it breaks something... */
+    gps_setup();
 }
 
 static byte

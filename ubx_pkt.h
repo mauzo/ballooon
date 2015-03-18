@@ -99,6 +99,36 @@ typedef struct {
     uint32_t    reserved4;
 } ubx_cfg_nav5;
 
+#define UBX_TYP_CFG_RST 0x0406
+typedef struct {
+    UBX_HEAD
+    uint16_t    nav_bbr_mask;
+#define UBX_CFGRST_BBR_HOT  0x0000
+#define UBX_CFGRST_BBR_WARM 0x0001
+#define UBX_CFGRST_BBR_COLD 0xffff
+#define UBX_CFGRST_BBR_EPH      (1<<0)
+#define UBX_CFGRST_BBR_ALM      (1<<1)
+#define UBX_CFGRST_BBR_HEALTH   (1<<2)
+#define UBX_CFGRST_BBR_KLOB     (1<<3)
+#define UBX_CFGRST_BBR_POS      (1<<4)
+#define UBX_CFGRST_BBR_CLKD     (1<<5)
+#define UBX_CFGRST_BBR_OSC      (1<<6)
+#define UBX_CFGRST_BBR_UTC      (1<<7)
+#define UBX_CFGRST_BBR_RTC      (1<<8)
+#define UBX_CFGRST_BBR_SFDR     (1<<11)
+#define UBX_CFGRST_BBR_VMON     (1<<12)
+#define UBX_CFGRST_BBR_TCT      (1<<13)
+#define UBX_CFGRST_BBR_AOP      (1<<15)
+    uint8_t     reset_mode;
+#define UBX_CFGRST_RST_HARD     0x00
+#define UBX_CFGRST_RST_SOFT     0x01
+#define UBX_CFGRST_RST_GNSS     0x02
+#define UBX_CFGRST_RST_AFTER    0x04
+#define UBX_CFGRST_RST_STOP     0x08
+#define UBX_CFGRST_RST_START    0x09
+    uint8_t     reserved1;
+} ubx_cfg_rst;
+
 #define UBX_TYP_NAV_PVT 0x0701
 typedef struct {
     UBX_HEAD
