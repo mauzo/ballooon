@@ -31,6 +31,10 @@ typedef struct {
 typedef struct {
     UBX_HEAD
     uint8_t     port;
+#define UBX_CFGPRT_PORT_DDC     0
+#define UBX_CFGPRT_PORT_UART    1
+#define UBX_CFGPRT_PORT_USB     3
+#define UBX_CFGPRT_PORT_SPI     4
     uint8_t     reserved0;
     uint16_t    tx_ready;
 #define UBX_CFGPRT_TX_EN        0x01
@@ -38,15 +42,21 @@ typedef struct {
 #define UBX_CFGPRT_TX_PIN(x)    ((x) << 2)
 #define UBX_CFGPRT_TX_THRES(x)  ((x) << 7)
     uint32_t    mode;
-#define UBX_CFGPRT_MODE_7BIT    (2 << 6)
-#define UBX_CFGPRT_MODE_8BIT    (3 << 6)
-#define UBX_CFGPRT_MODE_EPAR    (0 << 9)
-#define UBX_CFGPRT_MODE_OPAR    (1 << 9)
-#define UBX_CFGPRT_MODE_NPAR    (8 << 9)
-#define UBX_CFGPRT_MODE_1ST     (0 << 12)
-#define UBX_CFGPRT_MODE_15ST    (1 << 12)
-#define UBX_CFGPRT_MODE_2ST     (2 << 12)
-#define UBX_CFGPRT_MODE_05ST    (3 << 12)
+#define UBX_CFGPRT_UART_7BIT    (2 << 6)
+#define UBX_CFGPRT_UART_8BIT    (3 << 6)
+#define UBX_CFGPRT_UART_EPAR    (0 << 9)
+#define UBX_CFGPRT_UART_OPAR    (1 << 9)
+#define UBX_CFGPRT_UART_NPAR    (8 << 9)
+#define UBX_CFGPRT_UART_1ST     (0 << 12)
+#define UBX_CFGPRT_UART_15ST    (1 << 12)
+#define UBX_CFGPRT_UART_2ST     (2 << 12)
+#define UBX_CFGPRT_UART_05ST    (3 << 12)
+
+#define UBX_CFGPRT_SPI_MODE(x)  ((x) << 1)
+#define UBX_CFGPRT_SPI_FLOW     (1<<6)
+#define UBX_CFGPRT_SPI_FFCNT(x) ((x) << 8)
+
+#define UBX_CFGPRT_DDC_ADDR(x)  ((x) << 1)
     uint32_t    baud_rate;
     uint16_t    in_proto_mask;
     uint16_t    out_proto_mask;
@@ -54,6 +64,7 @@ typedef struct {
 #define UBX_CFGPRT_PROTO_NMEA   0x02
 #define UBX_CFGPRT_PROTO_RTCM   0x04
     uint16_t    flags;
+#define UBX_CFGPRT_FLAGS_XTXTMO (1<<1)
     uint16_t    reserved5;
 } ubx_cfg_prt;
 

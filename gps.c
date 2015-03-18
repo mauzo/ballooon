@@ -31,13 +31,8 @@ static const ubx_cfg_prt set_io_mode = {
     .type           = UBX_TYP_CFG_PRT,
     .len            = ubx_len(ubx_cfg_prt),
 
-    /* XXX This is not the same as before. Alex had .mode = 0x84, but I
-     * can't decode that as anything which makes sense. Perhaps it was
-     * meant to be 0x90 (10010000 rather than 10000100), which is 7
-     * bits, even parity, one stop bit? (But UBX is binary, so surely we
-     * want 8 bits, no parity?)
-     */
-    .mode           = UBX_CFGPRT_MODE_7BIT | UBX_CFGPRT_MODE_EPAR,
+    .port           = UBX_CFGPRT_PORT_DDC,
+    .mode           = UBX_CFGPRT_DDC_ADDR(GPS_ADDR),
     .in_proto_mask  = UBX_CFGPRT_PROTO_UBX,
     .out_proto_mask = UBX_CFGPRT_PROTO_UBX,
 };

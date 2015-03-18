@@ -19,7 +19,6 @@ typedef struct ubx_pad {
 #define UBX_EXTRA   8
 
 #define UBX_SYNC    0xb562
-#define UBX_ACK     0x0501
 
 static void     ubx_cksum   (byte set);
 
@@ -95,7 +94,7 @@ ubx_recv_ack (ubx_addr adr, ubx_pkt *pkt)
     ack.len = 2;
     ubx_recv_packet(adr, (ubx_pkt *)&ack);
 
-    if (ack.type != UBX_ACK || ack.ack_type != pkt->type)
+    if (ack.type != UBX_TYP_ACK || ack.ack_type != pkt->type)
         panic(F("UBX didn't get expected ACK"));
 }
 
