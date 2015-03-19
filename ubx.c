@@ -56,10 +56,13 @@ ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
     upad->sync = UBX_SYNC;
     memcpyF(&upad->pkt, pkt, len + UBX_HEADSIZ);
     ubx_cksum(1);
+    len += UBX_EXTRA;
 
     warnf(WDEBUG, sF("Sending UBX packet type [%x] len [%u]"), 
         dF(pkt).type, len);
-    if (twi_writeTo(adr, (byte*)pad, len + UBX_EXTRA, 1, 1))
+    pad_dump(len);
+
+    if (twi_writeTo(adr, (byte*)pad, len, 1, 1))
         panic(sF("TWI write failed"));
 }
 
@@ -110,16 +113,17 @@ ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
      * (readFrom should have a sendNack parameter as well as sendStop.)
      */
     got = twi_readFrom(adr, (byte*)pad, want, 1);
-    if (got != want || upad->pkt.len != pkt->len)
-        panic(sF("UBX rx packet length incorrect"));
-    
+
+    warnf(WDEBUG, sF("Read a UBX packet of type [%x] len [%u]"), 
+        upad->pkt.type, got);
+    pad_dump(got);
+
     if (upad->sync != UBX_SYNC)
         panic(sF("UBX rx lost sync"));
-
+    if (got != want || upad->pkt.len != pkt->len)
+        panic(sF("UBX rx packet length incorrect"));
     ubx_cksum(0);
 
     pkt->type = upad->pkt.type;
     memcpy(pkt->dat, upad->pkt.dat, pkt->len);
-    warnf(WDEBUG, sF("Read a UBX packet of type [%x] len [%u]"), 
-        pkt->type, pkt->len);
 }

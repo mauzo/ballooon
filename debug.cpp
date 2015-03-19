@@ -18,7 +18,7 @@ debug_setup (void)
 EXT_C void
 warn (byte level, const char *msg)
 {
-    static const char code[]    = "PEWNLD";
+    static const char code[]    = "PEWnldD";
     char stmp[14];
     long now                    = millis();
     

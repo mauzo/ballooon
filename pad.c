@@ -8,6 +8,38 @@ char pad[PADSIZ];
 
 #define vsnprintf __builtin_vsnprintf
 
+void
+pad_dump (size_t len)
+{
+    static const char __flash hex[] = "0123456789abcdef";
+    char    dump[16*3+2], *p;
+    int     i;
+
+    if (len > PADSIZ)
+        panic(sF("Pad dump too long"));
+
+    dump[16*3+1] = '\0';
+    p = dump;
+
+    for (i = 0; i < len; i++) {
+        if (i % 16 == 8)
+            *p++ = ' ';
+
+        *p++ = ' ';
+        *p++ = hex[pad[i] >> 4];
+        *p++ = hex[pad[i] & 0xf];
+
+        if (i % 16 == 15) {
+            warn(WDUMP, dump);
+            p = dump;
+        }
+    }
+    if (p > dump) {
+        *p = '\0';
+        warn(WDUMP, dump);
+    }
+}
+
 byte
 pad_vform (const char *fmt, va_list ap)
 {

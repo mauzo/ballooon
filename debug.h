@@ -11,6 +11,7 @@
 #define WNOTICE 3
 #define WLOG    4
 #define WDEBUG  5
+#define WDUMP   6
 
 void        debug_setup     (void);
 EXT_C void  warn            (byte level, const char *msg);
