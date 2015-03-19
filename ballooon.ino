@@ -15,7 +15,7 @@ task *all_tasks[] = {
 
 void setup()
 {
-    debug_setup();
+    serial_setup();
     warn(WDEBUG, sF("Finished setup()"));
 }
 

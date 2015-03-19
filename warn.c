@@ -8,12 +8,15 @@
 
 #define snprintf __builtin_snprintf
 
-void
-debug_setup (void)
-{ 
-    // Start debug output
-    Serial.begin(9600);
-}
+typedef struct {
+    void    (*write)(const char * msg);
+    byte    level;
+} writer;
+
+writer writers[] = {
+    { serial_write, WDUMP },
+    { NULL, 0 }
+};
 
 EXT_C void
 warn (byte level, const char *msg)
@@ -46,10 +49,16 @@ warnf (byte level, const char *fmt, ...)
 EXT_C void
 warnx (byte level, const char *msg)
 {
+    writer *w;
+
     if (isF(msg)) {
         strlcpyF(pad, msg, PADSIZ);
         msg = pad;
     }
-    Serial.print(msg);
+
+    for (w = writers; w->write; w++) {
+        if (level <= w->level)
+            w->write(msg);
+    }
 }
 

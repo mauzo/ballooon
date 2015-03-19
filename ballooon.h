@@ -24,9 +24,10 @@
 #include "flash.h"
 #include "pad.h"
 
-#include "debug.h"
-#include "task.h"
 #include "panic.h"
+#include "serial.h"
+#include "task.h"
+#include "warn.h"
 
 #include "gps.h"
 #include "ubx_pkt.h"
