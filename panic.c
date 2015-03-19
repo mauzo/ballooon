@@ -20,8 +20,8 @@ panic_catch (void)
 {
     task    **t;
 
-    warnx(sF("\r\nPANIC: "));
-    warn(panic_msg);
+    warnx(WPANIC, sF("\r\nPANIC: "));
+    warn(WPANIC, panic_msg);
 
     for (t = all_tasks; *t; t++)
         (*t)->reset();

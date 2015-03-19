@@ -57,7 +57,7 @@ ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
     memcpyF(&upad->pkt, pkt, len + UBX_HEADSIZ);
     ubx_cksum(1);
 
-    warnf(sF("Sending UBX packet type [%x] len [%u]"), 
+    warnf(WDEBUG, sF("Sending UBX packet type [%x] len [%u]"), 
         dF(pkt).type, len);
     if (twi_writeTo(adr, (byte*)pad, len + UBX_EXTRA, 1, 1))
         panic(sF("TWI write failed"));
@@ -73,7 +73,7 @@ ubx_send_with_ack (ubx_addr adr, ubx_pkt *pkt)
 
     if (ack.type != UBX_TYP_ACK || ack.ack_type != dF(pkt).type)
         panic(sF("UBX didn't get expected ACK"));
-    warnf(sF("Got ack for UBX packet of type [%x]"), ack.ack_type);
+    warnf(WDEBUG, sF("Got ack for UBX packet of type [%x]"), ack.ack_type);
 }
 
 void
@@ -88,7 +88,7 @@ ubx_send_with_reply (ubx_addr adr, ubx_pkt *pkt, uint16_t rlen)
 void
 ubx_setup (void)
 {
-    warn(sF("Initialising TWI"));
+    warn(WDEBUG, sF("Initialising TWI"));
     twi_init();
 }
 
@@ -120,6 +120,6 @@ ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
 
     pkt->type = upad->pkt.type;
     memcpy(pkt->dat, upad->pkt.dat, pkt->len);
-    warnf(sF("Read a UBX packet of type [%x] len [%u]"), 
+    warnf(WDEBUG, sF("Read a UBX packet of type [%x] len [%u]"), 
         pkt->type, pkt->len);
 }

@@ -63,12 +63,12 @@ static const __flash ubx_cfg_rst reset_gps = {
 static void
 gps_setup (void)
 {
-    warn(sF("Calling UBX setup"));
+    warn(WDEBUG, sF("Calling UBX setup"));
     ubx_setup();
 
-    warn(sF("Sending CFG-PRT packet to GPS"));
+    warn(WDEBUG, sF("Sending CFG-PRT packet to GPS"));
     ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)pF(set_io_mode));
-    warn(sF("Sending CFG-NAV5 packet to GPS"));
+    warn(WDEBUG, sF("Sending CFG-NAV5 packet to GPS"));
     ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)pF(set_nav_mode));
 
     gps_task.when = TASK_START;
@@ -80,7 +80,7 @@ gps_run (long now)
     if (gps_fetch_data())
         gps_print_data();
     else
-        warn(sF("GPS fetch failed"));
+        warn(WWARN, sF("GPS fetch failed"));
 
     gps_task.when = now + 10000;
 }
@@ -88,7 +88,7 @@ gps_run (long now)
 static void
 gps_reset (void)
 {
-    warn(sF("RESETTING GPS UNIT"));
+    warn(WWARN, sF("RESETTING GPS UNIT"));
 
     /* XXX I don't know if this gets an ACK or not. There's nothing in
      * the documentation to suggest it doesn't. */
@@ -109,7 +109,7 @@ gps_fetch_data (void)
         .len    = 0,
     };
 
-    warn(sF("Sending NAV-PVT UBX request"));
+    warn(WDEBUG, sF("Sending NAV-PVT UBX request"));
 
     /* The response should be full-length. */
     ubx_send_with_reply(GPS_ADDR, (ubx_pkt *)&nav, ubx_len(nav));
@@ -118,7 +118,7 @@ gps_fetch_data (void)
         panic(sF("GPS got wrong response to NAV-PVT"));
 
     if (!gps_validate(&nav)) {
-        warn(sF("PVT packet failed to validate"));
+        warn(WDEBUG, sF("PVT packet failed to validate"));
         return 0;
     }
 
@@ -126,7 +126,7 @@ gps_fetch_data (void)
         gps_last_fix.hr     = nav.hour;
         gps_last_fix.min    = nav.min;
         gps_last_fix.sec    = nav.sec;
-        warn(sF("Got a valid time from GPS"));
+        warn(WDEBUG, sF("Got a valid time from GPS"));
     }
     gps_last_fix.lat    = nav.lat / 100;
     gps_last_fix.lon    = nav.lon / 100;
@@ -136,7 +136,7 @@ gps_fetch_data (void)
     gps_last_fix.nsats      = nav.num_sv;
     gps_last_fix.fix_type   = nav.fix_type;
 
-    warnf(sF("Got a valid position from GPS at [%lu]ms"),
+    warnf(WDEBUG, sF("Got a valid position from GPS at [%lu]ms"),
         gps_last_fix.when);
 
     return 1;
@@ -145,19 +145,19 @@ gps_fetch_data (void)
 void
 gps_print_data (void)
 {
-    warn(sF("\r\nGPS Data:"));
-    warnf(sF("Time: %02u:%02u:%02u"),
+    warn(WLOG, sF("\r\nGPS Data:"));
+    warnf(WLOG, sF("Time: %02u:%02u:%02u"),
         gps_last_fix.hr, gps_last_fix.min, gps_last_fix.sec);
-    warnf(sF("Lat: %li, Lon: %li"), gps_last_fix.lat, gps_last_fix.lon);
-    warnf(sF("Altitude: %li"), gps_last_fix.alt);
-    warnf(sF("Number of satellites used: %u"), gps_last_fix.nsats);
-    warnf(sF("Type of lock: %u\n"), gps_last_fix.fix_type);
+    warnf(WLOG, sF("Lat: %li, Lon: %li"), gps_last_fix.lat, gps_last_fix.lon);
+    warnf(WLOG, sF("Altitude: %li"), gps_last_fix.alt);
+    warnf(WLOG, sF("Number of satellites used: %u"), gps_last_fix.nsats);
+    warnf(WLOG, sF("Type of lock: %u\n"), gps_last_fix.fix_type);
 }
 
 static byte
 gps_validate (ubx_nav_pvt *nav)
 {
-    warnf(sF("Validating PVT packet: fix [%u] num_sv [%u]"),
+    warnf(WDEBUG, sF("Validating PVT packet: fix [%u] num_sv [%u]"),
         (unsigned int)nav->fix_type, (unsigned int)nav->num_sv);
 
     if (nav->fix_type != UBX_NAVPVT_FIX_3D
