@@ -63,9 +63,12 @@ static const __flash ubx_cfg_rst reset_gps = {
 static void
 gps_setup (void)
 {
+    warn(sF("Calling UBX setup"));
     ubx_setup();
 
+    warn(sF("Sending CFG-PRT packet to GPS"));
     ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)pF(set_io_mode));
+    warn(sF("Sending CFG-NAV5 packet to GPS"));
     ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)pF(set_nav_mode));
 
     gps_task.when = TASK_START;
@@ -85,6 +88,8 @@ gps_run (long now)
 static void
 gps_reset (void)
 {
+    warn(sF("RESETTING GPS UNIT"));
+
     /* XXX I don't know if this gets an ACK or not. There's nothing in
      * the documentation to suggest it doesn't. */
     ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)pF(reset_gps));
@@ -104,19 +109,24 @@ gps_fetch_data (void)
         .len    = 0,
     };
 
+    warn(sF("Sending NAV-PVT UBX request"));
+
     /* The response should be full-length. */
     ubx_send_with_reply(GPS_ADDR, (ubx_pkt *)&nav, ubx_len(nav));
 
     if (nav.type != UBX_TYP_NAV_PVT)
         panic(sF("GPS got wrong response to NAV-PVT"));
 
-    if (!gps_validate(&nav))
+    if (!gps_validate(&nav)) {
+        warn(sF("PVT packet failed to validate"));
         return 0;
+    }
 
     if (nav.valid & UBX_NAVPVT_VALID_TIME) {
         gps_last_fix.hr     = nav.hour;
         gps_last_fix.min    = nav.min;
         gps_last_fix.sec    = nav.sec;
+        warn(sF("Got a valid time from GPS"));
     }
     gps_last_fix.lat    = nav.lat / 100;
     gps_last_fix.lon    = nav.lon / 100;
@@ -125,6 +135,9 @@ gps_fetch_data (void)
     gps_last_fix.when       = millis();
     gps_last_fix.nsats      = nav.num_sv;
     gps_last_fix.fix_type   = nav.fix_type;
+
+    warnf(sF("Got a valid position from GPS at [%lu]ms"),
+        gps_last_fix.when);
 
     return 1;
 }
@@ -144,6 +157,9 @@ gps_print_data (void)
 static byte
 gps_validate (ubx_nav_pvt *nav)
 {
+    warnf(sF("Validating PVT packet: fix [%u] num_sv [%u]"),
+        (unsigned int)nav->fix_type, (unsigned int)nav->num_sv);
+
     if (nav->fix_type != UBX_NAVPVT_FIX_3D
         && nav->fix_type != UBX_NAVPVT_FIX_BOTH)
         return 0;

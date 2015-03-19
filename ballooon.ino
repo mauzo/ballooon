@@ -16,6 +16,7 @@ task *all_tasks[] = {
 void setup()
 {
     debug_setup();
+    warn(sF("Finished setup()"));
 }
 
 void loop()
@@ -23,8 +24,10 @@ void loop()
     task  **t;
     long    now, w;
 
-    for (t = all_tasks; *t; t++)
+    for (t = all_tasks; *t; t++) {
+        warnf(sF("Calling setup for [%s]"), (*t)->name);
         (*t)->setup();
+    }
 
     PANIC_CATCH;
 
@@ -34,8 +37,11 @@ void loop()
             w = (*t)->when;
             if (w == TASK_INACTIVE)
                 continue;
-            if (now > w)
+            if (now > w) {
+                warnf(sF("Running task [%s] at [%lu]ms"),
+                    (*t)->name, now);
                 (*t)->run(now);
+            }
         }
     }
 
