@@ -1,5 +1,6 @@
 build-uno/
 OneWire/
+config.mk
 *.s
 *.i
 *.ii
