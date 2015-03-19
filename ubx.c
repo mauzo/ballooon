@@ -16,7 +16,8 @@ typedef struct ubx_pad {
     ubx_pkt     pkt;
 } ubx_pad;
 
-#define UBX_SYNC    0xb562
+/* little-endian */
+#define UBX_SYNC    0x62b5
 #define UBX_EXTRA   (UBX_HEADSIZ + 4)
 
 static void     ubx_cksum   (byte set);
