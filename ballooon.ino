@@ -11,7 +11,7 @@
 void setup()
 {
     serial_setup();
-    warn(WDEBUG, "Done setup()");
+    warn(WDEBUG, sF("Done setup()"));
 }
 
 void loop()
