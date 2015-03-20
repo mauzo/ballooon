@@ -7,7 +7,9 @@
 char pad[PADSIZ];
 
 #define vsnprintf __builtin_vsnprintf
+#define snprintf __builtin_snprintf
 
+#if 0
 void
 pad_dump (char *from, size_t len)
 {
@@ -38,6 +40,22 @@ pad_dump (char *from, size_t len)
         *p = '\0';
         warn(WDUMP, dump);
     }
+}
+#endif
+
+void
+pad_dump (char *from, size_t len)
+{
+    char buf[4];
+    int i;
+
+    for (i = 0; i < len; i++) {
+        snprintf(buf, sizeof(buf), " %02x", from[i]);
+        warnx(WDUMP, buf);
+        if (i % 16 == 15)
+            warnx(WDUMP, "\r\n");
+    }
+    warnx(WDUMP, "\r\n");
 }
 
 byte
