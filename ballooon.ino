@@ -31,6 +31,10 @@ void loop()
 
     PANIC_CATCH;
 
+    warn(WDEBUG, "Set setjmp");
+    delay(1000);
+    panic("panic");
+
     while (1) {
         now = millis();
         for (t = all_tasks; *t; t++) {
