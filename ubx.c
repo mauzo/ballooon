@@ -54,6 +54,7 @@ ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
         panic(sF("UBX tx packet too long"));
 
     upad->sync = UBX_SYNC;
+    warnf(WDEBUG, "pkt [%04x]", (unsigned int)pkt);
     memcpyF(&upad->pkt, pkt, len + UBX_HEADSIZ);
     ubx_cksum(1);
     len += UBX_EXTRA;
