@@ -16,6 +16,9 @@ typedef struct ubx_pad {
     ubx_pkt     pkt;
 } ubx_pad;
 
+static ubx_pad _upad;
+static ubx_pad *upad = &_upad;
+
 /* little-endian */
 #define UBX_SYNC    0x62b5
 #define UBX_EXTRA   (UBX_HEADSIZ + 4)
@@ -25,7 +28,6 @@ static void     ubx_cksum   (byte set);
 static void
 ubx_cksum (byte set)
 {
-    ubx_pad *upad = (ubx_pad *)pad;
     byte    *p, *e, a = 0, b = 0;
 
     e = upad->pkt.dat + upad->pkt.len;
@@ -47,7 +49,6 @@ ubx_cksum (byte set)
 void
 ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
 {
-    ubx_pad *upad   = (ubx_pad *)pad;
     uint16_t len    = dF(pkt).len;
 
     if (len + UBX_EXTRA > PADSIZ)
@@ -63,21 +64,15 @@ ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
             (unsigned)f[0], (unsigned)f[1], (unsigned)f[2], (unsigned)f[3]);
     }
 
-#if 0
     memcpyF(&upad->pkt, pkt, len + UBX_HEADSIZ);
-#endif
-    memcpy_P(&upad->pkt, aF(pkt), len + UBX_HEADSIZ);
     ubx_cksum(1);
     len += UBX_EXTRA;
 
     warnf(WDEBUG, sF("Sending UBX packet type [%x] len [%u]"), 
         dF(pkt).type, len);
-    warnf(WDEBUG, "pad [%04x] start of pad [%02x %02x %02x %02x]",
-        (unsigned)pad, (unsigned)pad[0], (unsigned)pad[1],
-        (unsigned)pad[2], (unsigned)pad[3]);
-    pad_dump(len);
+    pad_dump((char *)upad, len);
 
-    if (twi_writeTo(adr, (byte*)pad, len, 1, 1))
+    if (twi_writeTo(adr, (byte*)upad, len, 1, 1))
         panic(sF("TWI write failed"));
 }
 
@@ -113,7 +108,6 @@ ubx_setup (void)
 void
 ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
 {
-    ubx_pad *upad = (ubx_pad *)pad;
     byte    want, got;
 
     want = pkt->len + UBX_EXTRA;
@@ -127,7 +121,7 @@ ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
      * go, so I have to know what length of packet I'm expecting.
      * (readFrom should have a sendNack parameter as well as sendStop.)
      */
-    got = twi_readFrom(adr, (byte*)pad, want, 1);
+    got = twi_readFrom(adr, (byte*)upad, want, 1);
 
     warnf(WDEBUG, "upad [%x]", (int)upad);
     warnf(WDEBUG, "upad->pkt [%x]", (int)&upad->pkt);
@@ -135,7 +129,7 @@ ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
 
     warnf(WDEBUG, sF("Read a UBX packet of type [%x] len [%u]"), 
         upad->pkt.type, got);
-    pad_dump(got);
+    pad_dump((char *)upad, got);
 
     if (upad->sync != UBX_SYNC)
         panic(sF("UBX rx lost sync"));

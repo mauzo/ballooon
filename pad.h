@@ -10,7 +10,7 @@
 extern char pad[PADSIZ];
 
 /* dump the contents of the pad in hex */
-EXT_C void  pad_dump    (size_t len);
+EXT_C void  pad_dump    (char *from, size_t len);
 
 /* These all return the length of the string now in the pad, or 0xFF if
  * the string was too long to fit. (This means PADSIZ has to stay below

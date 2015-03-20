@@ -9,7 +9,7 @@ char pad[PADSIZ];
 #define vsnprintf __builtin_vsnprintf
 
 void
-pad_dump (size_t len)
+pad_dump (char *from, size_t len)
 {
     static const char __flash hex[] = "0123456789abcdef";
     char    dump[16*3+2], *p;
@@ -26,8 +26,8 @@ pad_dump (size_t len)
             *p++ = ' ';
 
         *p++ = ' ';
-        *p++ = hex[pad[i] >> 4];
-        *p++ = hex[pad[i] & 0xf];
+        *p++ = hex[from[i] >> 4];
+        *p++ = hex[from[i] & 0xf];
 
         if (i % 16 == 15) {
             warn(WDUMP, dump);
