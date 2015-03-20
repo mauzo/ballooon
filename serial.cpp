@@ -9,5 +9,10 @@ serial_setup (void)
 { 
     // Start debug output
     Serial.begin(9600);
-    Serial.println("Testing, testing...");
+}
+
+EXT_C void
+serial_write (const char *msg)
+{
+    Serial.print(msg);
 }

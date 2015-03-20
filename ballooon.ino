@@ -11,6 +11,7 @@
 void setup()
 {
     serial_setup();
+    serial_write("Testing testing...\r\n");
 }
 
 void loop()
