@@ -70,6 +70,11 @@ ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
 
     warnf(WDEBUG, sF("Sending UBX packet type [%x] len [%u]"), 
         dF(pkt).type, len);
+    warnf(WDEBUG, "upad [%04x] start of upad [%02x %02x %02x %02x]",
+        (unsigned)(char *)upad, (unsigned)((char*)upad)[0], 
+        (unsigned)((char*)upad)[1],
+        (unsigned)((char*)upad)[2], 
+        (unsigned)((char*)upad)[3]);
     pad_dump((char *)upad, len);
 
     if (twi_writeTo(adr, (byte*)upad, len, 1, 1))
