@@ -5,6 +5,7 @@
 #ifndef __BALLOOON_H
 #define __BALLOOON_H
 
+#include <setjmp.h>
 #include <stdarg.h>
 
 #include <Arduino.h>
@@ -17,6 +18,8 @@
 
 #include "flash.h"
 #include "pad.h"
+
+#include "panic.h"
 #include "warn.h"
 
 #include "serial.h"

@@ -16,5 +16,11 @@ void setup()
 
 void loop()
 {
+    warn(WDEBUG, "Before setjmp");
+
+    PANIC_CATCH;
+
+    warn(WDEBUG, "After setjmp");
+
     while (1) ;
 }
