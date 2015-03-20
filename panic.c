@@ -5,24 +5,42 @@
 #include "ballooon.h"
 
 jmp_buf panic_jb;
-
-static const char *panic_msg;
+void    (*panic_handler)(void);
 
 void
-panic (const char *msg)
+panic (const char *msg, ...)
 {
-    panic_msg = msg;
-    longjmp(panic_jb, 1);
+    va_list ap;
+
+    va_start(ap, msg);
+    pad_vform(msg, ap);
+    va_end(ap);
+
+    warnx(WPANIC, sF("\r\nPANIC: "));
+    warn(WPANIC, pad);
+
+    if (panic_handler)
+        panic_handler();
+    else
+        /* nothing else we can do... */
+        while (1) ;
 }
 
 void
-panic_catch (void)
+panic_in_loop (void)
 {
     task    **t;
 
-    warnx(WPANIC, sF("\r\nPANIC: "));
-    warn(WPANIC, panic_msg);
-
     for (t = all_tasks; *t; t++)
         (*t)->reset();
+
+    longjmp(panic_jb, 0);
 }
+
+void
+panic_in_setup (void)
+{
+    warn(WPANIC, sF("Panic in setup, cannot continue!"));
+    while (1) ;
+}
+

@@ -78,7 +78,7 @@ ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
     pad_dump((char *)upad, len);
 
     if (twi_writeTo(adr, (byte*)upad, len, 1, 1))
-        panic(sF("TWI write failed"));
+        warn(WERROR, sF("TWI write failed"));
 }
 
 void
