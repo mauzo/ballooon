@@ -1,0 +1,5 @@
+I need to catch early panics, before the main loop starts.
+
+twi will only read or write 32 bytes at a time.
+
+UBX will quite happily split a packet across multiple I2C txns.
