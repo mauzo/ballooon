@@ -114,6 +114,10 @@ ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
      */
     got = twi_readFrom(adr, (byte*)pad, want, 1);
 
+    warnf(WDEBUG, "upad [%x]", (int)upad);
+    warnf(WDEBUG, "upad->pkt [%x]", (int)&upad->pkt);
+    warnf(WDEBUG, "upad->pkt.type [%x]", (int)upad->pkt.type);
+
     warnf(WDEBUG, sF("Read a UBX packet of type [%x] len [%u]"), 
         upad->pkt.type, got);
     pad_dump(got);
