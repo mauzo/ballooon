@@ -63,12 +63,18 @@ ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
             (unsigned)f[0], (unsigned)f[1], (unsigned)f[2], (unsigned)f[3]);
     }
 
+#if 0
     memcpyF(&upad->pkt, pkt, len + UBX_HEADSIZ);
+#endif
+    memcpy_P(&upad->pkt, aF(pkt), len + UBX_HEADSIZ);
     ubx_cksum(1);
     len += UBX_EXTRA;
 
     warnf(WDEBUG, sF("Sending UBX packet type [%x] len [%u]"), 
         dF(pkt).type, len);
+    warnf(WDEBUG, "pad [%04x] start of pad [%02x %02x %02x %02x]",
+        (unsigned)pad, (unsigned)pad[0], (unsigned)pad[1],
+        (unsigned)pad[2], (unsigned)pad[3]);
     pad_dump(len);
 
     if (twi_writeTo(adr, (byte*)pad, len, 1, 1))
