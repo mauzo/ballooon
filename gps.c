@@ -67,6 +67,7 @@ gps_setup (void)
     ubx_setup();
 
     warn(WDEBUG, sF("Sending CFG-PRT packet to GPS"));
+    warnf(WDEBUG, "&set_io_mode [%04x]", (int)&set_io_mode);
     ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)pF(set_io_mode));
     warn(WDEBUG, sF("Sending CFG-NAV5 packet to GPS"));
     ubx_send_with_ack(GPS_ADDR, (ubx_pkt *)pF(set_nav_mode));
