@@ -55,6 +55,14 @@ ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
 
     upad->sync = UBX_SYNC;
     warnf(WDEBUG, "pkt [%04x]", (unsigned int)pkt);
+
+    {
+        const __flash char *f = (const char *)aF(pkt);
+        warnf(WDEBUG, "f [%04x] start of packet [%02x %02x %02x %02x]",
+            (unsigned)f,
+            (unsigned)f[0], (unsigned)f[1], (unsigned)f[2], (unsigned)f[3]);
+    }
+
     memcpyF(&upad->pkt, pkt, len + UBX_HEADSIZ);
     ubx_cksum(1);
     len += UBX_EXTRA;
