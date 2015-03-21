@@ -10,6 +10,8 @@ AVR_TOOLS_DIR=	/usr/local
 ARDUINO_LIBS=	Wire
 BOARD_TAG=	uno
 
+CWARNFLAGS=	-Wall -Wno-parentheses
+
 include ./Arduino.mk
 
 %.ii: %.cpp
