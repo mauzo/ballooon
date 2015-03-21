@@ -116,8 +116,8 @@ ubx_recv (ubx_addr adr, ubx_pkt *pkt)
     len = upad->pkt.len;
     warnf(WDEBUG, sF("Reading a UBX packet of type [%02x] len [%u]"), 
         upad->pkt.type, len);
-    SHOW_PTR(upad, "ubx_recv_packet: header");
-    pad_dump((char *)upad, len + UBX_SYNCSIZ);
+    SHOW_PTR(upad, "ubx_recv: header");
+    pad_dump(sF("ubx_recv: header"), (char *)upad, len + UBX_SYNCSIZ);
 
     if (len > pkt->len || len + UBX_EXTRA > PADSIZ) {
         warn(WWARN, sF("UBX packet too long, dropping"));
@@ -130,12 +130,12 @@ ubx_recv (ubx_addr adr, ubx_pkt *pkt)
     }
 
     ubx_twi_read(adr, &p, len + UBX_CKSIZ, 1);
-    pad_dump((char *)upad, len + UBX_EXTRA);
+    pad_dump(sF("ubx_recv: full packet"), (char *)upad, len + UBX_EXTRA);
     ubx_cksum(0);
 
     memcpy(pkt, &upad->pkt, len + UBX_HEADSIZ);
-    SHOW_PTR(pkt, "ubx_recv_packet: pkt");
-    pad_dump((char *)pkt, len + UBX_HEADSIZ);
+    SHOW_PTR(pkt, "ubx_recv: pkt");
+    pad_dump(sF("ubx_recv: pkt"), (char *)pkt, len + UBX_HEADSIZ);
     return;
 
 drop:
@@ -154,7 +154,7 @@ ubx_send (ubx_addr adr, ubx_pkt *pkt)
         panic(sF("UBX tx packet too long"));
 
     upad->sync = UBX_SYNC;
-    SHOW_PTR(pkt, "ubx_send_packet: pkt");
+    SHOW_PTR(pkt, "ubx_send: pkt");
 
     memcpyF(&upad->pkt, pkt, len + UBX_HEADSIZ);
     ubx_cksum(1);
@@ -162,8 +162,8 @@ ubx_send (ubx_addr adr, ubx_pkt *pkt)
 
     warnf(WDEBUG, sF("Sending UBX packet type [%02x] len [%u]"), 
         dF(pkt).type, len);
-    SHOW_PTR(upad, "ubx_send_packet: upad");
-    pad_dump((char *)upad, len);
+    SHOW_PTR(upad, "ubx_send: upad");
+    pad_dump(sF("ubx_set: upad"), (char *)upad, len);
 
     /* twi is really annoying: rather than using the buffer we give it,
      * it copies the data into a 32-byte buffer of its own. So don't try

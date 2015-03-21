@@ -10,7 +10,7 @@ char pad[PADSIZ];
 #define snprintf __builtin_snprintf
 
 void
-pad_dump (char *from, size_t len)
+pad_dump (const char *msg, char *from, size_t len)
 {
     static const char __flash hex[] = "0123456789abcdef";
     char    dump[16*3+2], *p;
@@ -18,6 +18,13 @@ pad_dump (char *from, size_t len)
 
     if (len > PADSIZ)
         panic(sF("Pad dump too long"));
+
+    if (isF(msg))
+        warnf(WDUMP, sF("Dumping [%u] bytes from [%02x]: %S"),
+            (unsigned)len, (unsigned)from, aF(msg));
+    else
+        warnf(WDUMP, sF("Dumping [%u] bytes from [%02x]: %s"),
+            (unsigned)len, (unsigned)from, msg);
 
     dump[16*3+1] = '\0';
     p = dump;
@@ -27,8 +34,8 @@ pad_dump (char *from, size_t len)
             *p++ = ' ';
 
         *p++ = ' ';
-        *p++ = hex[from[i] >> 4];
-        *p++ = hex[from[i] & 0xf];
+        *p++ = hex[dF(from+i) >> 4];
+        *p++ = hex[dF(from+i) & 0xf];
 
         if (i % 16 == 15) {
             warn(WDUMP, dump);
