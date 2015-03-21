@@ -9,7 +9,6 @@ char pad[PADSIZ];
 #define vsnprintf __builtin_vsnprintf
 #define snprintf __builtin_snprintf
 
-#if 0
 void
 pad_dump (char *from, size_t len)
 {
@@ -41,8 +40,8 @@ pad_dump (char *from, size_t len)
         warn(WDUMP, dump);
     }
 }
-#endif
 
+#if 0
 void
 pad_dump (char *from, size_t len)
 {
@@ -57,6 +56,7 @@ pad_dump (char *from, size_t len)
     }
     warnx(WDUMP, "\r\n");
 }
+#endif
 
 byte
 pad_vform (const char *fmt, va_list ap)

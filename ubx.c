@@ -16,18 +16,26 @@ typedef struct ubx_pad {
     ubx_pkt     pkt;
 } ubx_pad;
 
-static ubx_pad _upad;
-static ubx_pad *upad = &_upad;
+static byte _upad[PADSIZ];
 
 /* little-endian */
 #define UBX_SYNC    0x62b5
 #define UBX_EXTRA   (UBX_HEADSIZ + 4)
+
+#define SHOW_PTR(p, n) ({ \
+    warnf(WDEBUG, sF(n " [%04x] = [%02x %02x %02x %02x %02x %02x]"), \
+        (unsigned)(p), \
+        (unsigned)dF((byte*)p), (unsigned)dF(((byte*)p)+1), \
+        (unsigned)dF(((byte*)p)+2), (unsigned)dF(((byte*)p)+3), \
+        (unsigned)dF(((byte*)p)+4), (unsigned)dF(((byte*)p)+5)); \
+})
 
 static void     ubx_cksum   (byte set);
 
 static void
 ubx_cksum (byte set)
 {
+    ubx_pad *upad = (ubx_pad *)_upad;
     byte    *p, *e, a = 0, b = 0;
 
     e = upad->pkt.dat + upad->pkt.len;
@@ -49,20 +57,14 @@ ubx_cksum (byte set)
 void
 ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
 {
+    ubx_pad *upad   = (ubx_pad *)_upad;
     uint16_t len    = dF(pkt).len;
 
     if (len + UBX_EXTRA > PADSIZ)
         panic(sF("UBX tx packet too long"));
 
     upad->sync = UBX_SYNC;
-    warnf(WDEBUG, "pkt [%04x]", (unsigned int)pkt);
-
-    {
-        const __flash char *f = (const char *)aF(pkt);
-        warnf(WDEBUG, "f [%04x] start of packet [%02x %02x %02x %02x]",
-            (unsigned)f,
-            (unsigned)f[0], (unsigned)f[1], (unsigned)f[2], (unsigned)f[3]);
-    }
+    SHOW_PTR(pkt, "ubx_send_packet: pkt");
 
     memcpyF(&upad->pkt, pkt, len + UBX_HEADSIZ);
     ubx_cksum(1);
@@ -70,11 +72,7 @@ ubx_send_packet (ubx_addr adr, ubx_pkt *pkt)
 
     warnf(WDEBUG, sF("Sending UBX packet type [%x] len [%u]"), 
         dF(pkt).type, len);
-    warnf(WDEBUG, "upad [%04x] start of upad [%02x %02x %02x %02x]",
-        (unsigned)(char *)upad, (unsigned)((char*)upad)[0], 
-        (unsigned)((char*)upad)[1],
-        (unsigned)((char*)upad)[2], 
-        (unsigned)((char*)upad)[3]);
+    SHOW_PTR(upad, "ubx_send_packet: upad");
     pad_dump((char *)upad, len);
 
     if (twi_writeTo(adr, (byte*)upad, len, 1, 1))
@@ -113,6 +111,7 @@ ubx_setup (void)
 void
 ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
 {
+    ubx_pad *upad   = (ubx_pad *)_upad;
     byte    want, got;
 
     want = pkt->len + UBX_EXTRA;
@@ -128,12 +127,9 @@ ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
      */
     got = twi_readFrom(adr, (byte*)upad, want, 1);
 
-    warnf(WDEBUG, "upad [%x]", (int)upad);
-    warnf(WDEBUG, "upad->pkt [%x]", (int)&upad->pkt);
-    warnf(WDEBUG, "upad->pkt.type [%x]", (int)upad->pkt.type);
-
     warnf(WDEBUG, sF("Read a UBX packet of type [%x] len [%u]"), 
         upad->pkt.type, got);
+    SHOW_PTR(upad, "ubx_recv_packet: upad");
     pad_dump((char *)upad, got);
 
     if (upad->sync != UBX_SYNC)
@@ -144,4 +140,5 @@ ubx_recv_packet (ubx_addr adr, ubx_pkt *pkt)
 
     pkt->type = upad->pkt.type;
     memcpy(pkt->dat, upad->pkt.dat, pkt->len);
+    SHOW_PTR(pkt, "ubx_recv_packet: pkt");
 }
