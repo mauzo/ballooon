@@ -111,12 +111,9 @@ gps_fetch_data (void)
     };
 
     warn(WDEBUG, sF("Sending NAV-PVT UBX request"));
-
-    /* The response should be full-length. */
-    ubx_send_with_reply(GPS_ADDR, (ubx_pkt *)&nav, ubx_len(nav));
-
-    if (nav.type != UBX_TYP_NAV_PVT)
-        panic(sF("GPS got wrong response to NAV-PVT"));
+    ubx_send(GPS_ADDR, (ubx_pkt *)&nav);
+    nav.len = ubx_len(ubx_nav_pvt);
+    ubx_recv(GPS_ADDR, (ubx_pkt *)&nav);
 
     if (!gps_validate(&nav)) {
         warn(WDEBUG, sF("PVT packet failed to validate"));
