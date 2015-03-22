@@ -522,7 +522,7 @@ USER_LIB_OBJS = $(patsubst $(USER_LIB_PATH)/%.cpp,$(OBJDIR)/libs/%.o,$(USER_LIB_
 CWARNFLAGS?=	-Wall
 CPPFLAGS      = -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DARDUINO=$(ARDUINO_VERSION) \
 			-I. -I$(ARDUINO_CORE_PATH) -I$(ARDUINO_VAR_PATH)/$(VARIANT) \
-			$(SYS_INCLUDES) $(USER_INCLUDES) -Os $(CWARNFLAGS)
+			$(SYS_INCLUDES) $(USER_INCLUDES) -Os $(CWARNFLAGS) \
 			-DUSB_VID=$(USB_VID) -DUSB_PID=$(USB_PID) \
 			-ffunction-sections -fdata-sections
 
@@ -530,6 +530,7 @@ CFLAGS        = -std=gnu99
 CXXFLAGS      = -fno-exceptions
 ASFLAGS       = -mmcu=$(MCU) -I. -x assembler-with-cpp
 LDFLAGS       = -mmcu=$(MCU) -Wl,--gc-sections -Os
+LIBS	      = -lm
 
 # Expand and pick the first port
 ARD_PORT      = $(firstword $(wildcard $(ARDUINO_PORT)))
@@ -666,7 +667,7 @@ $(OBJDIR):
 		mkdir $(OBJDIR)
 
 $(TARGET_ELF): 	$(LOCAL_OBJS) $(CORE_LIB) $(OTHER_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(LOCAL_OBJS) $(CORE_LIB) $(OTHER_OBJS) -lc -lm
+		$(CC) $(LDFLAGS) -o $@ $(LOCAL_OBJS) $(CORE_LIB) $(OTHER_OBJS) $(LIBS)
 
 $(CORE_LIB):	$(CORE_OBJS) $(LIB_OBJS) $(USER_LIB_OBJS)
 		$(AR) rcs $@ $(CORE_OBJS) $(LIB_OBJS) $(USER_LIB_OBJS)
