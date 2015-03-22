@@ -1,0 +1,26 @@
+CC=	cc
+CXX=	c++
+RM_F=	rm -f
+
+PROG=	try
+SRCS=	pad.c panic.c serial.cpp task.c try-ubx.c try.c warn.c
+
+OBJS=	${SRCS:R:S/$/.o/g}
+
+.SUFFIXES: .c .cpp .o
+
+.PHONY: all clean
+
+all:	${PROG}
+
+clean:
+	${RM_F} *
+
+${PROG}: ${OBJS}
+	${CXX} -o ${.TARGET} ${.ALLSRC}
+
+.c.o:
+	${CC} -c -o ${.TARGET} ${.IMPSRC}
+
+.cpp.o:
+	${CXX} -c -o ${.TARGET} ${.IMPSRC}

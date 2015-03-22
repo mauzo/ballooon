@@ -20,10 +20,10 @@ pad_dump (const char *msg, char *from, size_t len)
         panic(sF("Pad dump too long"));
 
     if (isF(msg))
-        warnf(WDUMP, sF("Dumping [%u] bytes from [%02x]: %S"),
+        warnf(WDUMP, sF("Dumping [%u] bytes from [%x]: %"fF),
             (unsigned)len, (unsigned)from, aF(msg));
     else
-        warnf(WDUMP, sF("Dumping [%u] bytes from [%02x]: %s"),
+        warnf(WDUMP, sF("Dumping [%u] bytes from [%x]: %s"),
             (unsigned)len, (unsigned)from, msg);
 
     dump[16*3+1] = '\0';

@@ -11,9 +11,13 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <avr/pgmspace.h>
+#ifdef __AVR__
+#  include <avr/pgmspace.h>
+#  include <Arduino.h>
+#else
+#  include "avr-compat.h"
+#endif
 
-#include <Arduino.h>
 
 #ifdef __cplusplus
 #  define EXT_C extern "C"

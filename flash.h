@@ -11,14 +11,16 @@
 #ifndef __FLASH_H
 #define __FLASH_H
 
+#define TOP ((uintptr_t)1 << (sizeof(uintptr_t) * 8 - 1))
+
 /* This is &f, where f is in flash */
-#define pF(f)   ((typeof(f)*)(((uintptr_t)&(f)) | 0x8000))
+#define pF(f)   ((typeof(f)*)(((uintptr_t)&(f)) | TOP))
 
 /* This returns the actual address in f */
-#define aF(f)   ((typeof(*(f))*)((uintptr_t)(f) & 0x7fff))
+#define aF(f)   ((typeof(*(f))*)((uintptr_t)(f) & ~TOP))
 
 /* Is this address in flash? */
-#define isF(f)  ((uintptr_t)(f) & 0x8000)
+#define isF(f)  ((uintptr_t)(f) & TOP)
 
 /* This is *f, where f might point into flash. This doesn't work in C++,
  * because it doesn't support the __flash memory space. */
@@ -40,6 +42,13 @@
     static const char __sF[sizeof(s)] PROGMEM = (s); \
     (const char *)pF(__sF); \
 })
+
+/* A printf format to print a flash string */
+#ifdef __AVR__
+#  define fF "S"
+#else
+#  define fF "s"
+#endif
 
 /* String copying functions which work on pF source addresses. */
 #define strlcpyF(d, s, n) \
