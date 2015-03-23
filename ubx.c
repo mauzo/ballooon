@@ -38,9 +38,10 @@ static byte     dropped;
         (unsigned)dF(((byte*)p)+4), (unsigned)dF(((byte*)p)+5)); \
 })
 
-static void     ubx_cksum   (byte set);
-static void     ubx_drop    (ubx_addr adr, byte len);
-static void     ubx_twi_read (ubx_addr adr, byte **p, byte len, byte stop);
+static void ubx_cksum       (byte set);
+static void ubx_drop        (ubx_addr adr, byte len);
+static void ubx_twi_read    (ubx_addr adr, byte **p, byte len, byte stop);
+static void ubx_twi_write   (ubx_addr adr, byte *p, byte len, byte stop);
 
 static void
 ubx_cksum (byte set)
@@ -81,6 +82,9 @@ ubx_drop (ubx_addr adr, byte len)
         panic(sF("UBX dropped too many packets"));
 }
 
+/* twi is really annoying: rather than using the buffer we give it,
+ * it copies the data into a 32-byte buffer of its own. So don't try
+ * to send more than 32b at once. */
 static void
 ubx_twi_read (ubx_addr adr, byte **p, byte len, byte stop)
 {
@@ -88,9 +92,9 @@ ubx_twi_read (ubx_addr adr, byte **p, byte len, byte stop)
 
     while (len > 0) {
         if (len > TWI_BUFSIZ)
-            got = twi_readFrom(adr, *p, TWI_BUFSIZ, 0);
+            got = twi_readFrom(adr, *p, TWI_BUFSIZ, /*0*/1);
         else
-            got = twi_readFrom(adr, *p, len, stop);
+            got = twi_readFrom(adr, *p, len, /*stop*/1);
 
         /* twi doesn't return an error on read, so if we get no data
          * there's no way to recover */
@@ -100,6 +104,25 @@ ubx_twi_read (ubx_addr adr, byte **p, byte len, byte stop)
         *p  += got;
         len -= got;
     }
+}
+
+static void
+ubx_twi_write (ubx_addr adr, byte *p, byte len, byte stop)
+{
+    byte    err;
+
+    while (len > TWI_BUFSIZ) {
+        pad_dump(sF("TWI partial write"), (char *)p, TWI_BUFSIZ);
+        if (err = twi_writeTo(adr, p, TWI_BUFSIZ, 1, /*0*/1))
+            panic(sF("TWI partial write failed [%u]"), (unsigned)err);
+
+        p   += TWI_BUFSIZ;
+        len -= TWI_BUFSIZ;
+    }
+
+    pad_dump(sF("TWI final write"), (char *)p, len);
+    if (err = twi_writeTo(adr, p, len, 1, /*stop*/1))
+        panic(sF("TWI final write failed [%u]"), (unsigned)err);
 }
 
 void
@@ -148,7 +171,6 @@ ubx_send (ubx_addr adr, ubx_pkt *pkt)
 {
     ubx_pad     *upad   = (ubx_pad *)_upad;
     uint16_t    len     = dF(pkt).len;
-    byte        *p, err;
 
     if (len + UBX_EXTRA > PADSIZ)
         panic(sF("UBX tx packet too long"));
@@ -165,18 +187,7 @@ ubx_send (ubx_addr adr, ubx_pkt *pkt)
     SHOW_PTR(upad, "ubx_send: upad");
     pad_dump(sF("ubx_set: upad"), (char *)upad, len);
 
-    /* twi is really annoying: rather than using the buffer we give it,
-     * it copies the data into a 32-byte buffer of its own. So don't try
-     * to send more than 32b at once. */
-    p = (byte *)upad;
-    while (len > TWI_BUFSIZ) {
-        if (err = twi_writeTo(adr, p, TWI_BUFSIZ, 1, 0))
-            panic(sF("TWI partial write failed [%u]"), (unsigned)err);
-        p   += TWI_BUFSIZ;
-        len -= TWI_BUFSIZ;
-    }
-    if (err = twi_writeTo(adr, p, len, 1, 1))
-        panic(sF("TWI final write failed [%u]"), (unsigned)err);
+    ubx_twi_write(adr, (byte *)upad, len, 1);
 }
 
 void
