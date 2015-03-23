@@ -6,6 +6,7 @@
 
 char pad[PADSIZ];
 
+#if 1
 void
 pad_dump (const char *msg, char *from, size_t len)
 {
@@ -31,8 +32,8 @@ pad_dump (const char *msg, char *from, size_t len)
             *p++ = ' ';
 
         *p++ = ' ';
-        *p++ = hex[dF(from+i) >> 4];
-        *p++ = hex[dF(from+i) & 0xf];
+        *p++ = hex[(byte)dF(from+i) >> 4];
+        *p++ = hex[(byte)dF(from+i) & 0xf];
 
         if (i % 16 == 15) {
             warn(WDUMP, dump);
@@ -45,15 +46,23 @@ pad_dump (const char *msg, char *from, size_t len)
     }
 }
 
-#if 0
+#else
+
 void
-pad_dump (char *from, size_t len)
+pad_dump (const char *msg, char *from, size_t len)
 {
     char buf[4];
     int i;
 
+    if (isF(msg))
+        warnf(WDUMP, sF("Dumping [%u] bytes from [%x]: %"fF),
+            (unsigned)len, (unsigned)from, aF(msg));
+    else
+        warnf(WDUMP, sF("Dumping [%u] bytes from [%x]: %s"),
+            (unsigned)len, (unsigned)from, msg);
+
     for (i = 0; i < len; i++) {
-        snprintf(buf, sizeof(buf), " %02x", from[i]);
+        snprintf(buf, sizeof(buf), " %02x", (byte)from[i]);
         warnx(WDUMP, buf);
         if (i % 16 == 15)
             warnx(WDUMP, "\r\n");
