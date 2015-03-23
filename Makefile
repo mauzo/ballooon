@@ -14,18 +14,18 @@ CWARNFLAGS=	-Wall -Wno-parentheses
 
 include ./Arduino.mk
 
-%.ii: %.cpp
-	$(CXX) -E $(CPPFLAGS) $(CXXFLAGS) $< > $@
-
-%.s: %.cpp
-	$(CXX) -S $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
-
-%.s: build-uno/%.cpp
-	$(CXX) -S $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
-
-%.i: %.c
-	$(CC) -E $(CPPFLAGS) $(CFLAGS) $< > $@
-
-%.s: %.c
-	$(CC) -S $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
+#%.ii: %.cpp
+#	$(CXX) -E $(CPPFLAGS) $(CXXFLAGS) $< > $@
+#
+#%.s: %.cpp
+#	$(CXX) -S $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
+#
+#%.s: build-uno/%.cpp
+#	$(CXX) -S $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
+#
+#%.i: %.c
+#	$(CC) -E $(CPPFLAGS) $(CFLAGS) $< > $@
+#
+#%.s: %.c
+#	$(CC) -S $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
