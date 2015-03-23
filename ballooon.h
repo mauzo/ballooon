@@ -9,15 +9,25 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #ifdef __AVR__
 #  include <avr/pgmspace.h>
 #  include <Arduino.h>
+#  define WW(f, ...) (void)0
 #else
 #  include "avr-compat.h"
+#  define WW(f, ...) fprintf(stderr, f, ##__VA_ARGS__)
 #endif
 
+#define WP(m, p) \
+    WW("%s [%lx] -> [%02x %02x %02x %02x]\n", \
+        (m), (unsigned long)p, \
+        (unsigned)dF((byte*)p + 0), \
+        (unsigned)dF((byte*)p + 1), \
+        (unsigned)dF((byte*)p + 2), \
+        (unsigned)dF((byte*)p + 3))
 
 #ifdef __cplusplus
 #  define EXT_C extern "C"

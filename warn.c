@@ -6,8 +6,6 @@
 
 #include "ballooon.h"
 
-#define snprintf __builtin_snprintf
-
 typedef struct {
     void    (*write)(const char * msg);
     byte    level;

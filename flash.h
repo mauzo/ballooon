@@ -55,5 +55,7 @@
     (isF(s) ? strlcpy_P(d, aF(s), n) : strlcpy(d, s, n))
 #define memcpyF(d, s, n) \
     (isF(s) ? memcpy_P(d, aF(s), n) : memcpy(d, s, n))
+#define vsnprintfF(b, l, f, a) \
+    (isF(f) ? vsnprintf_P(b, l, aF(f), a) : vsnprintf(b, l, aF(f), a))
 
 #endif

@@ -6,9 +6,6 @@
 
 char pad[PADSIZ];
 
-#define vsnprintf __builtin_vsnprintf
-#define snprintf __builtin_snprintf
-
 void
 pad_dump (const char *msg, char *from, size_t len)
 {
@@ -68,15 +65,9 @@ pad_dump (char *from, size_t len)
 byte
 pad_vform (const char *fmt, va_list ap)
 {
-    char bounce[PADSIZ];
     long len;
     
-    if (isF(fmt)) {
-        /* can't use the pad, we're about to format into it... */
-        strlcpyF(bounce, fmt, PADSIZ);
-        fmt = bounce;
-    }
-    len = vsnprintf(pad, PADSIZ, fmt, ap);
+    len = vsnprintfF(pad, PADSIZ, fmt, ap);
     return len < PADSIZ ? len : 0xff;
 }
 
