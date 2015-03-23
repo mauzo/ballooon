@@ -11,7 +11,7 @@ serial_setup (void)
     Serial.begin(9600);
 }
 
-EXT_C void
+void
 serial_write (const char *msg)
 {
     Serial.print(msg);

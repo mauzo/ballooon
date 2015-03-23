@@ -8,8 +8,8 @@
 extern jmp_buf  panic_jb;
 extern void     (*panic_handler)(void);
 
-EXT_C void      panic           (const char *msg, ...);
-EXT_C void      panic_in_loop   (void);
-EXT_C void      panic_in_setup  (void);
+void    panic           (const char *msg, ...);
+void    panic_in_loop   (void);
+void    panic_in_setup  (void);
 
 #endif

@@ -16,7 +16,7 @@ writer writers[] = {
     { NULL, 0 }
 };
 
-EXT_C void
+void
 warn (byte level, const char *msg)
 {
     static const char code[]    = "PEWnldD";
@@ -32,7 +32,7 @@ warn (byte level, const char *msg)
     warnx(level, "\r\n");
 }
 
-EXT_C void
+void
 warnf (byte level, const char *fmt, ...)
 {
     va_list     ap;
@@ -44,7 +44,7 @@ warnf (byte level, const char *fmt, ...)
     warn(level, pad);
 }
 
-EXT_C void
+void
 warnx (byte level, const char *msg)
 {
     writer *w;

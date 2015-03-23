@@ -13,8 +13,8 @@
 #define WDEBUG  5
 #define WDUMP   6
 
-EXT_C void  warn            (byte level, const char *msg);
-EXT_C void  warnf           (byte level, const char *fmt, ...);
-EXT_C void  warnx           (byte level, const char *msg);
+void    warn    (byte level, const char *msg);
+void    warnf   (byte level, const char *fmt, ...);
+void    warnx   (byte level, const char *msg);
 
 #endif

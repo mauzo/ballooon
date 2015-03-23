@@ -30,9 +30,7 @@
         (unsigned)dF((byte*)p + 3))
 
 #ifdef __cplusplus
-#  define EXT_C extern "C"
-#else
-#  define EXT_C
+extern "C" {
 #endif
 
 #include "flash.h"
@@ -46,5 +44,9 @@
 #include "gps.h"
 #include "ubx_pkt.h"
 #include "ubx.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
