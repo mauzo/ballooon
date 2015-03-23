@@ -12,11 +12,11 @@ panic (const char *msg, ...)
 {
     va_list ap;
 
+    warn(WPANIC, sF("PANIC!"));
+
     va_start(ap, msg);
     pad_vform(msg, ap);
     va_end(ap);
-
-    warnx(WPANIC, sF("\r\nPANIC: "));
     warn(WPANIC, pad);
 
     if (panic_handler)
