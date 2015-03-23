@@ -9,6 +9,9 @@
 
 typedef unsigned char byte;
 
+#define true    1
+#define false   0
+
 #define memcpy_P    memcpy
 #define strlcpy_P   strlcpy
 #define vsnprintf_P vsnprintf
