@@ -1,3 +1,5 @@
+/* vi:set syn=cpp: */
+
 #include <Wire.h>
 
 #define GPS_ADDR 0x42 // I2C address for uBlox Max7-q
@@ -44,6 +46,15 @@ unsigned char UBXckA;
 unsigned char UBXckB;
 
 long gpsCheckTime = millis();
+
+void printGPSData();
+void checkForLock();
+boolean getGPSData();
+void parseUBX();
+void UBXchecksum(unsigned char data);
+long join4Bytes(unsigned char data[]);
+boolean sendUBX(uint8_t *MSG, uint8_t len);
+boolean getUBX_ACK(uint8_t *MSG);
 
 void setup()
 {

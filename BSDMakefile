@@ -1,0 +1,81 @@
+ARDUINO_DIR=	/usr/local/arduino
+AVR_DIR=	/usr/local/avr
+
+ARD_CORE=	${ARDUINO_DIR}/hardware/arduino/cores/arduino
+
+CC=	cc
+CXX=	c++
+RM_F=	rm -f
+
+LD=	${CXX}
+
+CFLAGS=		-g -Wno-parentheses 
+CFLAGS+=	-I${.CURDIR}
+CFLAGS+=	-I${ARD_CORE}
+#CFLAGS+=	-I${AVR_DIR}/include
+CFLAGS+=	-I${.CURDIR}/amd64
+CXXFLAGS=	${CFLAGS}
+LDFLAGS=
+
+PROG=		try
+SRCS=		ballooon.ino Wire.cpp Print.cpp
+AMD_SRCS=	
+ALIBS=		Wire
+ 
+.if !empty(AMD_SRCS)
+SRCS+=	${AMD_SRCS:S!^!amd64/!}
+.endif
+OBJS=	${SRCS:R:S/$/.o/g}
+
+ARD_LIB_DIRS=
+.for l in ${ALIBS}
+d=	${ARDUINO_DIR}/libraries/${l}
+ARD_LIB_DIRS+=	${d} ${d}/utility
+.endfor
+
+.for d in ${ARD_CORE} ${ARD_LIB_DIRS}
+.PATH:		${d}
+CFLAGS+=	-I${d}
+.endfor
+
+.SUFFIXES: .c .cpp .o .ino
+
+.PHONY: all clean cleandir depend obj
+
+all:	${PROG}
+
+clean:
+	${RM_F} ${PROG} ${OBJS}
+
+cleandir:
+	cd ${.CURDIR} && rm -rf obj.${MACHINE}
+
+depend: .depend
+
+.depend: ${SRCS} ${.PARSEFILE}
+	echo >${.TARGET}
+.if !empty(SRCS:M*.c)
+	${CC} -MM ${CFLAGS} ${.ALLSRC:M*.c} >>${.TARGET}
+.endif
+.if !empty(SRCS:M*.cpp)
+	${CXX} -MM ${CXXFLAGS} ${.ALLSRC:M*.cpp} >>${.TARGET}
+.endif
+.if !empty(SRCS:M*.ino)
+	${CXX} -MM ${CXXFLAGS} -x cpp ${.ALLSRC:M*.ino} >>${.TARGET}
+.endif
+
+obj:
+	cd ${.CURDIR} && mkdir -p ${SRCS:H:u:S!^!obj.${MACHINE}/!}
+
+${PROG}: ${OBJS}
+	${LD} -o ${.TARGET} ${.ALLSRC}
+
+.c.o:
+	${CC} ${CFLAGS} -c -o ${.TARGET} ${.IMPSRC}
+
+.cpp.o:
+	${CXX} ${CXXFLAGS} -c -o ${.TARGET} ${.IMPSRC}
+
+.ino.cpp:
+	echo '#include <Arduino.h>' >${.TARGET}
+	cat ${.IMPSRC} >${.TARGET}
