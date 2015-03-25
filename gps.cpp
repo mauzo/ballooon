@@ -5,7 +5,20 @@
 #include <Arduino.h>
 
 #include "ubx.h"
+#include "ubx_pkt.h"
 #include "gps.h"
+
+/* XXX This doesn't work in C++ (grr)
+static const ubx_cfg_prt set_io_mode = {
+    .type           = UBX_TYP_CFG_PRT,
+    .len            = ubx_len(ubx_cfg_prt),
+
+    .port           = UBX_CFGPRT_PORT_DDC,
+    .mode           = UBX_CFGPRT_DDC_ADDR(GPS_ADDR),
+    .in_proto_mask  = UBX_CFGPRT_PROTO_UBX,
+    .out_proto_mask = UBX_CFGPRT_PROTO_UBX,
+};
+*/
 
 byte setIOtoUBX[] = {0xB5, 0x62, 0x06, 0x00, 0x14, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00,
