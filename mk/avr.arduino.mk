@@ -1,4 +1,6 @@
-.if !exists(${ARDUINO_DIR})
+.ifdef USE_ARDUINO
+
+.if empty(ARDUINO_DIR) || !exists(${ARDUINO_DIR})
 .  error ARDUINO_DIR must be set!
 .endif
 
@@ -12,23 +14,39 @@ libCore_SRCS+=	wiring.c wiring_digital.c wiring_analog.c wiring_pulse.c \
 
 libWire_SRCS+=	Wire.cpp twi.c
 
-__ARD_LIBS=	${USE_ARDUINO:S!^!${ARDUINO_DIR}/libraries/!}
+__ARD_LIB_DIRS=	${USE_ARDUINO:S!^!${ARDUINO_DIR}/libraries/!}
 
 .for d in ${ARDUINO_DIR}/hardware/arduino/cores/arduino \
 	${ARDUINO_DIR}/hardware/arduino/variants/standard \
-	${__ARD_LIBS} ${__ARD_LIBS:S!$!/utility!}
+	${__ARD_LIB_DIRS} ${__ARD_LIB_DIRS:S!$!/utility!}
 
 .PATH:		${d}
 CFLAGS+=	-I${d}
 .endfor
 
-.for l in ${USE_ARDUINO:S/^/lib/} libCore
-OBJDIRS+=	${l}
-ARDUINO_LIBS+=	${l}.a
-CLEANFILES+=	${l}.a
+__ARD_LIBS=	${USE_ARDUINO:S/^/lib/} libCore
+OBJDIRS+=	${__ARD_LIBS}
+ARDUINO_LIBS=	${__ARD_LIBS:S/$/.a/}
+CLEANFILES+=	${ARDUINO_LIBS}
 
+.for l in ${__ARD_LIBS}
 .  for s in ${${l}_SRCS}
 CLEANFILES+=	${l}/${s:R}.o ${l}/${s}
+.  endfor
+.endfor
+
+.SUFFIXES: .ino
+
+.ino.cpp:
+	echo "#include <Arduino.h>" >${.TARGET}
+	cat ${.IMPSRC} >>${.TARGET}
+
+.ifdef PROG
+${PROG}: ${ARDUINO_LIBS}
+.endif
+
+.for l in ${__ARD_LIBS}
+.  for s in ${${l}_SRCS}
 
 ${l}.a: ${l}/${s:R}.o
 
@@ -38,5 +56,6 @@ ${l}/${s}: ${s}
 
 ${l}.a:
 	${AR} rcs ${.TARGET} ${.ALLSRC}
-
 .endfor
+
+.endif
