@@ -1,18 +1,15 @@
+# This is a BSD makefile. 
+# It requires BSD make (bmake), not GNU make (gmake).
+
 .include "mk/avr.mk"
 
 ARDUINO_DIR=	/usr/local/arduino
 USE_ARDUINO=	Wire
 
-RM_F=	rm -f
-
-LD=	${CXX}
+LD=		${CXX}
 
 PROG=		ballooon
-SRCS=		
-AVR_SRCS=	ballooon.ino
-
-AMD_SRCS=	try.cpp task.c twi.c
-ARD_USE=	Wire
+SRCS=		ballooon.ino gps.cpp ubx.cpp
 
 .ifdef AMD
 SRCS+=	${AMD_SRCS:S!^!amd64/!}

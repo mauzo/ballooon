@@ -7,13 +7,13 @@ depend: ${DEPENDFILE}
 ${DEPENDFILE}: ${SRCS}
 	echo >${.TARGET}
 .if !empty(SRCS:M*.c)
-	${CC} -MM ${CFLAGS} ${SRCS:M*.c} >>${.TARGET}
+	${CC} -MM ${CFLAGS} ${.ALLSRC:M*.c} >>${.TARGET}
 .endif
 .if !empty(SRCS:M*.cpp)
-	${CXX} -MM ${CXXFLAGS} ${SRCS:M*.cpp} >>${.TARGET}
+	${CXX} -MM ${CXXFLAGS} ${.ALLSRC:M*.cpp} >>${.TARGET}
 .endif
 .if !empty(SRCS:M*.ino)
-	${CXX} -MM ${CXXFLAGS} -x c++ ${SRCS:M*.ino} >>${.TARGET}
+	${CXX} -MM ${CXXFLAGS} -x c++ ${.ALLSRC:M*.ino} >>${.TARGET}
 .endif
 
 cleandepend:
