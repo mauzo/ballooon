@@ -8,13 +8,15 @@
 #include "ubx.h"
 #include "gps.h"
 
+/* XXX these have to be global because they're used in gps.c */
+byte    UBXclass;
+byte    UBXid;
+
 // Variables that are filled by NAV-PVT:
 // (How many of these really need to be global? Move some to getGPSData())
 static byte UBXstate    = 0;
 static byte Checksum_A  = 0;
 static byte Checksum_B  = 0;
-static byte UBXclass;
-static byte UBXid;
 static byte UBXlengthLSB;
 static byte UBXlengthMSB;
 static byte UBXlength;

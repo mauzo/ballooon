@@ -36,8 +36,6 @@ static GPS_DATA         lastKnownFix;
 static boolean          gpsLock         = false;
 static unsigned long    gpsCheckTime;
 static byte             UBXbuffer[UBX_MAX_PAYLOAD];
-static byte             UBXclass;
-static byte             UBXid;
 
 static long     join4Bytes  (byte *data);
 
