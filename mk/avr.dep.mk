@@ -1,4 +1,4 @@
-.PHONY: depend cleandepend
+.PHONY: depend ${DEPENDFILE} cleandepend
 
 DEPENDFILE=	${.OBJDIR}/.depend
 

@@ -1,10 +1,21 @@
 # This is a BSD makefile. 
 # It requires BSD make (bmake), not GNU make (gmake).
 
+.ifdef AMD
+CC=	gcc48
+CXX=	g++48
+.endif
+
 .include "mk/avr.mk"
 
 ARDUINO_DIR=	/usr/local/arduino
 USE_ARDUINO=	Wire
+.ifdef AMD
+USE_ARDUINO+=	AMD64
+.else
+USE_ARDUINO+=	Core
+.endif
+libAMD64_DIRS=	${.CURDIR}/amd64 ${libCore_DIRS}
 
 PROG=		ballooon
 SRCS=		ballooon.ino gps.cpp ubx.cpp
