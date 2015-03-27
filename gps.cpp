@@ -8,6 +8,7 @@
 #include "ubx_pkt.h"
 #include "gps.h"
 #include "task.h"
+#include "warn.h"
 
 /* XXX This doesn't work in C++ (grr)
 static const ubx_cfg_prt set_io_mode = {
@@ -31,7 +32,6 @@ byte airborne1g[] = {0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF,
 // 0x10 0x27 0x00 0x00 for 'fixed altitude variance? Time and pos masks?
 byte reqNAV_PVT[] =  {0xB5, 0x62, 0x01, 0x07, 0x00, 0x00, 0x08, 0x19};
 
-static char             txString[100];
 static GPS_DATA         gpsData;
 static GPS_DATA         lastKnownFix;
 static boolean          gpsLock         = false;
@@ -54,9 +54,9 @@ task gps_task = {
 static void
 gps_run (unsigned long now)
 {
-    Serial.println("Requesting NAV-PVT.");
+    warn(WDEBUG, "Requesting NAV-PVT.");
     if(!sendUBX(GPS_ADDR, reqNAV_PVT, sizeof(reqNAV_PVT)))
-        Serial.println("Error sending command.");
+        warn(WERROR, "Error sending NAV-PVT");
     getGPSData(GPS_ADDR);
     checkForLock();
     printGPSData();
@@ -67,21 +67,21 @@ gps_run (unsigned long now)
 static void
 gps_setup (void)
 {
-    Serial.println("Setting IO protocols.");
+    warn(WNOTICE, "Setting IO protocols.");
     if(!sendUBX(GPS_ADDR, setIOtoUBX, sizeof(setIOtoUBX)))
-        Serial.println("Error sending command.");
+        warn(WERROR, "Error sending CFG-PRT.");
     
-    Serial.println("Awaiting confirmation.");
+    warn(WDEBUG, "Awaiting confirmation.");
     if(!getUBX_ACK(GPS_ADDR, setIOtoUBX))
-        Serial.println("Error: no confirmation received for port IO command.");
+        warn(WERROR, "Error: no confirmation received for CFG-PRT.");
     
-    Serial.println("Setting flight mode (1g).");
+    warn(WNOTICE, "Setting flight mode (1g).");
     if(!sendUBX(GPS_ADDR, airborne1g, sizeof(airborne1g)))
-        Serial.println("Error sending command.");
+        warn(WERROR, "Error sending CFG-NAV.");
     
-    Serial.println("Awaiting confirmation.");
+    warn(WNOTICE, "Awaiting confirmation.");
     if(!getUBX_ACK(GPS_ADDR, airborne1g))
-        Serial.println("Error: no confirmation received for port IO command.");
+        warn(WERROR, "Error: no confirmation received for CFG-NAV.");
 
     gpsCheckTime = millis();
 }
@@ -89,18 +89,13 @@ gps_setup (void)
 void 
 printGPSData (void) 
 {
-    Serial.println("\nGPS Data:");
-    sprintf(txString, "Time: %02u:%02u:%02u", 
+    warn(WLOG, "\nGPS Data:");
+    warnf(WLOG, "Time: %02u:%02u:%02u", 
         gpsData.Hr, gpsData.Min, gpsData.Sec);
-    Serial.println(txString);
-    sprintf(txString, "Lat: %li, Lon: %li", gpsData.Lat, gpsData.Lon);
-    Serial.println(txString);
-    sprintf(txString, "Altitude: %li", gpsData.Alt);
-    Serial.println(txString);
-    sprintf(txString, "Number of satellites used: %u", gpsData.numSats);
-    Serial.println(txString);
-    sprintf(txString, "Type of lock: %u\n", gpsData.fixType);
-    Serial.println(txString);
+    warnf(WLOG, "Lat: %li, Lon: %li", gpsData.Lat, gpsData.Lon);
+    warnf(WLOG, "Altitude: %li", gpsData.Alt);
+    warnf(WLOG,  "Number of satellites used: %u", gpsData.numSats);
+    warnf(WLOG, "Type of lock: %u\n", gpsData.fixType);
 }
 
 // Good fix is > 4 sats and fixType = 3 or 4.
@@ -111,13 +106,13 @@ checkForLock (void)
         (int)gpsData.fixType == 4) && (int)gpsData.numSats > 4
     ) {
         if(gpsLock == false)
-            Serial.println("*****Lock acquired*****");
+            warn(WNOTICE, "*****Lock acquired*****");
         gpsLock         = true;
         lastKnownFix    = gpsData;
     }
     else {
         if(gpsLock == true)
-            Serial.println("*****Lock lost*****");
+            warn(WNOTICE, "*****Lock lost*****");
         gpsLock = false;
     }
 }

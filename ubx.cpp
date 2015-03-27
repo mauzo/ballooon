@@ -7,6 +7,7 @@
 
 #include "ubx.h"
 #include "gps.h"
+#include "warn.h"
 
 /* XXX these have to be global because they're used in gps.c */
 byte    UBXclass;
@@ -42,7 +43,7 @@ getGPSData (ubx_addr adr)
     while (!EOM && !timeout) {
         if (millis() > timeoutTime) {
             timeout = true;
-            Serial.println("getGPSData timed out.");
+            warn(WWARN, "getGPSData timed out.");
             return false;
         }
         
@@ -91,7 +92,7 @@ getGPSData (ubx_addr adr)
                     // Convert little endian MSB & LSB into integer
                     UBXlength = (byte)(UBXlengthMSB << 8) | UBXlengthLSB;
                     if (UBXlength >= UBX_MAX_PAYLOAD) {
-                        Serial.println("UBX payload length too large (>100");
+                        warn(WWARN, "UBX payload length too large (>100");
                         UBXstate    = 0; // Bad data received so reset and 
                         Checksum_A  = 0;
                         Checksum_B  = 0;
@@ -119,7 +120,7 @@ getGPSData (ubx_addr adr)
                         EOM = true;
                     }
                     else {
-                        Serial.println("UBX PAYLOAD BAD CHECKSUM!!");
+                        warn(WERROR, "UBX PAYLOAD BAD CHECKSUM!!");
                         return false;
                     }
                     
@@ -145,32 +146,36 @@ sendUBX (ubx_addr adr, byte *msg, byte len)
     // Start I2C transmission
     Wire.beginTransmission(adr);
 
+    /* print a stamp for the debugging output */
+    warn_stamp(WDUMP);
+
     //Write one byte at a time
     for(i=0; i<len; i++) {
         // Wire library bug. Detect 32 bytes (defined in Wire.h) and
         // start again
         if(i > 0 && i % BUFFER_LENGTH == 0) {
             if(Wire.endTransmission() != 0) {
-                Serial.println("Error in Wire.endTransmission at buffer=max.");
+                warn(WERROR, "Error in Wire.endTransmission at buffer=max.");
                 return result;
             }
             
             Wire.beginTransmission(adr);
         }
 
-        Serial.print(msg[i], HEX);
+        warnxf(WDUMP, " %02x", msg[i]);
         if(Wire.write(msg[i]) != 1) {
-            Serial.println("Error in Wire.write.");
+            warn(WERROR, "Error in Wire.write.");
             return result;
         }
     }
+    warn_nl(WDUMP);
 
     if(Wire.endTransmission() != 0) {
-        Serial.println("Error in Wire.endTransmission.");
+        warn(WERROR, "Error in Wire.endTransmission.");
         return result;
     }
 
-    Serial.println("Success!");
+    warn(WDEBUG, "Success!");
     return true;
 }
 
@@ -184,7 +189,7 @@ getUBX_ACK (ubx_addr adr, byte *msg)
     byte    i;
     unsigned long startTime = millis();
 
-    Serial.println("Reading ACK response: ");
+    warn(WDEBUG, "Reading ACK response");
     
     // Construct the expected ACK packet    
     ackPacket[0] = 0xB5;	// header
@@ -204,10 +209,13 @@ getUBX_ACK (ubx_addr adr, byte *msg)
         ackPacket[9] = ackPacket[9] + ackPacket[8];
     }
     
+    /* timestamp the hex dump */
+    warn_stamp(WDUMP);
+
     while (1) {
         // Timeout if no valid response in 3 seconds
         if (millis() - startTime > 3000) { 
-            Serial.println(" (FAILED!)");
+            warn(WERROR, "Timed out reading UBX ACK");
             return false;
         }
         
@@ -224,12 +232,13 @@ getUBX_ACK (ubx_addr adr, byte *msg)
                 // ACK packet
                 if (readByte == ackPacket[ackByteID]) { 
                     ackByteID++;
-                    Serial.print(readByte, HEX);
+                    warnxf(WDUMP, " %02x", readByte);
                     
                     // Test for success
                     if (ackByteID > 9) {
                         // All packets in order!
-                        Serial.println(" (SUCCESS!)");
+                        warn_nl(WDUMP);
+                        warn(WDEBUG, "Successfully read UBX ACK");
                         return true;
                     }
                 }

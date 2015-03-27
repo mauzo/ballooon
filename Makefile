@@ -18,7 +18,7 @@ libAMD64_SRCS=	main.c amd64.c Print.cpp Stream.cpp
 libAMD64_DIRS=	${.CURDIR}/amd64 ${libCore_DIRS}
 
 PROG=		ballooon
-SRCS=		ballooon.ino gps.cpp ubx.cpp
+SRCS=		ballooon.ino gps.cpp ubx.cpp warn.cpp
 
 CFLAGS+=	-ffunction-sections -fdata-sections -Os -std=gnu99
 CFLAGS+=	-Wall -Wno-parentheses
