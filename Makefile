@@ -4,17 +4,17 @@
 .ifdef AMD
 CC=	gcc48
 CXX=	g++48
+
+CFLAGS+=	-DAMD
 .endif
 
 .include "mk/avr.mk"
 
 ARDUINO_DIR=	/usr/local/arduino
-USE_ARDUINO=	Wire
-.ifdef AMD
-USE_ARDUINO+=	AMD64
-.else
-USE_ARDUINO+=	Core
-.endif
+
+USE_ARDUINO=	${AMD:?AMD64:} Wire ${AMD:?:Core}
+
+libAMD64_SRCS=	main.c amd64.c Print.cpp Stream.cpp
 libAMD64_DIRS=	${.CURDIR}/amd64 ${libCore_DIRS}
 
 PROG=		ballooon

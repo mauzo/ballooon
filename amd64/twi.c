@@ -19,6 +19,10 @@ static struct reply replies[] = {
     { 0, NULL },
 };
 
+void
+twi_init (void)
+{ }
+
 uint8_t
 twi_transmit (const uint8_t *data, uint8_t length)
 {
