@@ -13,7 +13,7 @@
 /* This is just for clarity: a UBX address is just a byte, but it's
  * easier to understand function prototypes if we give it its own type.
  */
-typedef byte    ubx_addr;
+typedef int    ubx_addr;
 
 /* XXX these have to be global because they're used in gps.c */
 extern byte      UBXclass;
