@@ -5,6 +5,8 @@
 #ifndef __GPS_H
 #define __GPS_H
 
+#include "task.h"
+
 #define GPS_ADDR    0x42
 
 // Define structure class for GPS data
@@ -20,11 +22,10 @@ struct GPS_DATA {
     byte    Valid;
 };
 
+extern task gps_task;
+
 void        checkForLock    (void);
 void        parseUBX        (void);
 void        printGPSData    (void);
-
-void        gps_setup       (void);
-void        gps_loop        (void);
 
 #endif

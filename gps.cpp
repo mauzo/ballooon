@@ -7,6 +7,7 @@
 #include "ubx.h"
 #include "ubx_pkt.h"
 #include "gps.h"
+#include "task.h"
 
 /* XXX This doesn't work in C++ (grr)
 static const ubx_cfg_prt set_io_mode = {
@@ -37,23 +38,33 @@ static boolean          gpsLock         = false;
 static unsigned long    gpsCheckTime;
 static byte             UBXbuffer[UBX_MAX_PAYLOAD];
 
+static void     gps_setup   (void);
+static void     gps_run     (unsigned long now);
 static long     join4Bytes  (byte *data);
 
-void
-gps_loop (void)
+task gps_task = {
+    .name   = "GPS",
+    .when   = 0,
+
+    .setup  = gps_setup,
+    .run    = gps_run,
+    .reset  = 0,
+};
+
+static void
+gps_run (unsigned long now)
 {
-    if(millis() > gpsCheckTime) {
-        Serial.println("Requesting NAV-PVT.");
-        if(!sendUBX(GPS_ADDR, reqNAV_PVT, sizeof(reqNAV_PVT)))
-            Serial.println("Error sending command.");
-        getGPSData(GPS_ADDR);
-        checkForLock();
-        gpsCheckTime += 10000;
-        printGPSData();
-    }
+    Serial.println("Requesting NAV-PVT.");
+    if(!sendUBX(GPS_ADDR, reqNAV_PVT, sizeof(reqNAV_PVT)))
+        Serial.println("Error sending command.");
+    getGPSData(GPS_ADDR);
+    checkForLock();
+    printGPSData();
+
+    gps_task.when = now + 10000;
 }
 
-void
+static void
 gps_setup (void)
 {
     Serial.println("Setting IO protocols.");
