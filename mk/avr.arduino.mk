@@ -4,7 +4,7 @@
 .  error ARDUINO_DIR must be set!
 .endif
 
-libCore_SRCS+=	wiring.c wiring_digital.c wiring_analog.c wiring_pulse.c \
+libCore_SRCS=	wiring.c wiring_digital.c wiring_analog.c wiring_pulse.c \
 		wiring_shift.c \
 		main.cpp new.cpp \
 		WString.cpp WMath.cpp WInterrupts.c \
@@ -12,19 +12,26 @@ libCore_SRCS+=	wiring.c wiring_digital.c wiring_analog.c wiring_pulse.c \
 		USBCore.cpp CDC.cpp HID.cpp \
 		Tone.cpp IPAddress.cpp
 
-libWire_SRCS+=	Wire.cpp twi.c
+libCore_DIRS=	${ARDUINO_DIR}/hardware/arduino/cores/arduino \
+		${ARDUINO_DIR}/hardware/arduino/variants/standard
 
-__ARD_LIB_DIRS=	${USE_ARDUINO:S!^!${ARDUINO_DIR}/libraries/!}
+libAMD64_SRCS=	main.c amd64.c Print.cpp Stream.cpp
 
-.for d in ${ARDUINO_DIR}/hardware/arduino/cores/arduino \
-	${ARDUINO_DIR}/hardware/arduino/variants/standard \
-	${__ARD_LIB_DIRS} ${__ARD_LIB_DIRS:S!$!/utility!}
+libWire_SRCS=	Wire.cpp twi.c
 
-.PATH:		${d}
-CFLAGS+=	-I${d}
+.for u in ${USE_ARDUINO}
+.  if defined(lib${u}_DIRS)
+__ARD_LIB_DIRS+=	${lib${u}_DIRS}
+.  else
+__ARD_LIB_DIRS+=	${ARDUINO_DIR}/libraries/${u} \
+			${ARDUINO_DIR}/libraries/${u}/utility
+.  endif
 .endfor
 
-__ARD_LIBS=	${USE_ARDUINO:S/^/lib/} libCore
+.PATH:		${__ARD_LIB_DIRS}
+CFLAGS+=	${__ARD_LIB_DIRS:S/^/-I/}
+
+__ARD_LIBS=	${USE_ARDUINO:S/^/lib/}
 OBJDIRS+=	${__ARD_LIBS}
 ARDUINO_LIBS=	${__ARD_LIBS:S/$/.a/}
 CLEANFILES+=	${ARDUINO_LIBS}
@@ -51,7 +58,7 @@ ${PROG}: ${ARDUINO_LIBS}
 ${l}.a: ${l}/${s:R}.o
 
 ${l}/${s}: ${s}
-	ln -s ${${s}:P} ${.TARGET}
+	ln -sf ${${s}:P} ${.TARGET}
 .  endfor
 
 ${l}.a:
