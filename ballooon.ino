@@ -8,6 +8,7 @@
 void 
 setup (void)
 {
+    Wire.begin(); //Start I2C link
     Serial.begin(9600); // Start debug output
     gps_setup(); 
 }
