@@ -13,7 +13,7 @@
 class HardwareSerial : public Stream {
 public:
     HardwareSerial () { }
-    void begin (unsigned long) { }
+    void begin (unsigned long) { setlinebuf(stdout); }
     virtual size_t write (uint8_t c) { putc(c, stdout); return 1; }
     virtual int available () { return 0; }
     virtual int read () { return -1; }
