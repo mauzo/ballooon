@@ -3,13 +3,20 @@
 use 5.012;
 use warnings;
 
-my ($hex) = @ARGV;
-for ($hex) {
-    s/0x//g;
-    s/[^0-9a-fA-F]+//g;
+my $pkt;
+if (@ARGV == 1) {
+    my ($hex) = @ARGV;
+    for ($hex) {
+        s/0x//g;
+        s/[^0-9a-fA-F]+//g;
+    }
+    $pkt = pack "H*", $hex;
+}
+else {
+    my ($fmt, @args) = @ARGV;
+    $pkt = pack "$fmt", map /^0/ ? oct : $_, @args;
 }
 
-my $pkt = pack "H*", $hex;
 $pkt =~ s/^\xb5\x62//;
 
 my ($len) = unpack "xxv", $pkt;
