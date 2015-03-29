@@ -18,7 +18,7 @@ millis (void)
     }
     else {
         start = now;
-        return now;
+        return 0;
     }
 }
 

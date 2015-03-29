@@ -22,7 +22,9 @@ static struct reply replies[] = {
 
 void
 twi_init (void)
-{ }
+{
+    fprintf(stderr, "twi_init called\n");
+}
 
 uint8_t
 twi_transmit (const uint8_t *data, uint8_t length)
