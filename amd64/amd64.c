@@ -8,8 +8,17 @@ long
 millis (void)
 {
     struct timespec tp;
+    static long start = 0;
+    long now;
 
-    clock_gettime(CLOCK_VIRTUAL, &tp);
-    return (long)tp.tv_sec * 1000 + tp.tv_nsec / 1000000;
+    clock_gettime(CLOCK_REALTIME_FAST, &tp);
+    now = (long)tp.tv_sec * 1000 + tp.tv_nsec / 1000000;
+    if (start) {
+        return now - start;
+    }
+    else {
+        start = now;
+        return now;
+    }
 }
 
