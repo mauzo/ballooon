@@ -1,31 +1,33 @@
-# This is a GNU makefile. It requires Arduino.mk from the arduino-mk
-# package.
+# This is a BSD makefile. 
+# It requires BSD make (bmake), not GNU make (gmake).
 
-# These values are correct for the files installed by FreeBSD ports.
-# Under Linux you will probably need something different.
-ARDMK_DIR=	/usr/local/arduino-mk
+.ifdef AMD
+CC=	gcc48
+CXX=	g++48
+
+CFLAGS+=	-DAMD
+.endif
+
+.include "mk/avr.mk"
+
 ARDUINO_DIR=	/usr/local/arduino
-AVR_TOOLS_DIR=	/usr/local
 
-ARDUINO_LIBS=	Wire
-BOARD_TAG=	uno
+USE_ARDUINO=	${AMD:?AMD64:} Wire ${AMD:?:Core}
 
-CWARNFLAGS=	-Wall -Wno-parentheses
+libAMD64_SRCS=	main.c amd64.c Print.cpp Stream.cpp
+libAMD64_DIRS=	${.CURDIR}/amd64 ${libCore_DIRS}
 
-include ./Arduino.mk
+PROG=		ballooon
+SRCS=		ballooon.ino gps.c pad.c panic.c ubx.c warn.c \
+		serial.cpp
 
-#%.ii: %.cpp
-#	$(CXX) -E $(CPPFLAGS) $(CXXFLAGS) $< > $@
-#
-#%.s: %.cpp
-#	$(CXX) -S $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
-#
-#%.s: build-uno/%.cpp
-#	$(CXX) -S $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
-#
-#%.i: %.c
-#	$(CC) -E $(CPPFLAGS) $(CFLAGS) $< > $@
-#
-#%.s: %.c
-#	$(CC) -S $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
+CFLAGS+=	-ffunction-sections -fdata-sections -Os -std=gnu99
+CFLAGS+=	-Wall -Wno-parentheses
+CFLAGS+=	-I${.CURDIR}
 
+CXXFLAGS=	${CFLAGS:N-std=*} -fno-exceptions
+LDFLAGS+=	-Os -Wl,--gc-sections
+LIBS+=		-lm
+
+.include "avr.prog.mk"
+.include "avr.arduino.mk"

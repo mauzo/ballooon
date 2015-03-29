@@ -1,6 +1,7 @@
 build-uno/
 OneWire/
 obj.amd64/
+obj.avr/
 config.mk
 *.s
 *.i

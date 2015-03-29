@@ -12,12 +12,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <avr/pgmspace.h>
+
+#include <Arduino.h>
+
 #ifdef __AVR__
-#  include <avr/pgmspace.h>
-#  include <Arduino.h>
 #  define WW(f, ...) (void)0
 #else
-#  include "avr-compat.h"
 #  define WW(f, ...) fprintf(stderr, f, ##__VA_ARGS__)
 #endif
 
