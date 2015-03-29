@@ -36,7 +36,6 @@ static GPS_DATA         gpsData;
 static GPS_DATA         lastKnownFix;
 static boolean          gpsLock         = false;
 static unsigned long    gpsCheckTime;
-static byte             UBXbuffer[UBX_MAX_PAYLOAD];
 
 static void     gps_setup   (void);
 static void     gps_run     (unsigned long now);
@@ -89,7 +88,7 @@ gps_setup (void)
 void 
 printGPSData (void) 
 {
-    warn(WLOG, "\nGPS Data:");
+    warn(WLOG, "GPS Data:");
     warnf(WLOG, "Time: %02u:%02u:%02u", 
         gpsData.Hr, gpsData.Min, gpsData.Sec);
     warnf(WLOG, "Lat: %li, Lon: %li", gpsData.Lat, gpsData.Lon);
@@ -121,6 +120,7 @@ checkForLock (void)
 void 
 parseUBX (void)
 {
+    warnf(WDEBUG, "Decoding packet class [%x] id [%x]", UBXclass, UBXid);
     if(UBXclass == 0x01 && UBXid == 0x07) {
         gpsData.Hr      = UBXbuffer[8];
         gpsData.Min     = UBXbuffer[9];

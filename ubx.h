@@ -16,8 +16,9 @@
 typedef int    ubx_addr;
 
 /* XXX these have to be global because they're used in gps.c */
-extern byte      UBXclass;
-extern byte      UBXid;
+extern byte     UBXclass;
+extern byte     UBXid;
+extern byte     UBXbuffer[UBX_MAX_PAYLOAD];
 
 void        UBXchecksum     (byte data);
 boolean     getGPSData      (ubx_addr adr);

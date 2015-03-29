@@ -12,6 +12,7 @@
 /* XXX these have to be global because they're used in gps.c */
 byte    UBXclass;
 byte    UBXid;
+byte    UBXbuffer[UBX_MAX_PAYLOAD];
 
 // Variables that are filled by NAV-PVT:
 // (How many of these really need to be global? Move some to getGPSData())
@@ -22,7 +23,6 @@ static byte UBXlengthLSB;
 static byte UBXlengthMSB;
 static byte UBXlength;
 static byte UBXpayloadIdx;
-static byte UBXbuffer[UBX_MAX_PAYLOAD];
 static byte UBXckA;
 static byte UBXckB;
 
