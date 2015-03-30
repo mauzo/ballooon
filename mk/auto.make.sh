@@ -2,11 +2,18 @@ MAKE=
 Objdir=
 
 find_make () {
-    local cwd m out
+    local cwd m out try= IFS="$fs"
 
     say -N "Looking for a BSD make..."
 
-    for m in "$MAKE" make bmake
+    if [ -n "$MAKE" ]
+    then
+        try="$MAKE"
+    else
+        list_add try make bmake
+    fi
+
+    for m in $try
     do
         [ -z "$m" ]         && continue
         say -v "    trying $m... "

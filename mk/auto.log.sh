@@ -46,7 +46,8 @@ warn () {
 }
 
 fail () {
-    warn "$*"
+    local msg="$(cat)"
+    warn "$nl$msg"
     exit 1
 }
 

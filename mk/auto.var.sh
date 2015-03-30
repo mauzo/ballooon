@@ -1,7 +1,11 @@
+nl="
+"
+fs="$(printf "\034")"
+
 Write_Vars=
 
 var_clean_name () {
-    echo "$1" | tr -dc A-Z0-9_
+    echo "$1" | tr -dc A-Za-z0-9_
 }
 
 quote () {
@@ -27,50 +31,59 @@ var_default () {
     fi
 }
 
-var_append () {
-    local d=
+# List entries always have a trailing FS. An empty list is an empty
+# variable; a variable containing one FS is a list containing the empty
+# string.
 
-    if [ $# -eq 3 ]
-    then
-        d="$3"
-    else
-        d=" "
-    fi
+list_add () {
+    local n="$1" v=
+    shift
 
-    var_set "$(var_get "$1")$d$2"
+    for v in "$@"
+    do
+        var_set "$n" "$(var_get "$n")$v$fs"
+    done
 }
 
-var_append_if () {
+list_add_if () {
+    local n="$1" v=
+    shift
+
+    for v in "$@"
+    do
+        [ -n "$v" ] || continue
+        var_set "$n" "$(var_get "$n")$v$fs"
+    done
+}
+
+list_find () {
     local n="$1"
-    local v="$(var_get "$2")"
-    local d="$3"
+    local k="$2" 
+    local v=
 
-    if [ -n "$v" ] 
-    then
-        if [ $# -eq 3 ]
-        then
-            var_append "$n" "$v" "$d"
-        else
-            var_append "$n" "$v"
-        fi
-    fi
-}
-
-write_var () {
-    local v="$(var_clean_name "$1")"
-
-    case " $Write_Vars " in
-    *" $v "*)   ;;
-    *)          Write_Vars="$Write_Vars $v" ;;
+    case "$fs$(var_get $n)" in
+    *"$fs$k$fs"*)   return 0    ;;
+    *)              return 1    ;;
     esac
 }
 
+write_var () {
+    local v=
+
+    for v in "$@"
+    do
+        list_find Write_Vars "$v"    && continue
+        list_add Write_Vars "$v"
+    done
+}
+
 write_config_mk () {
-    local n= v=
+    local n= v= IFS="$fs"
 
-    [ -d "$Objdir" ] || err "write_config_mk called with no Objdir"
+    [ -d "$Objdir" ]        || err "write_config_mk called with no Objdir"
+    [ -n "$Write_Vars" ]    || return
 
-    for n in $Write_Vars
+    for n in ${Write_Vars%$fs}
     do
         v="$(var_get $n)"
         echo "$n=$v"

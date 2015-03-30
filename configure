@@ -1,10 +1,10 @@
 #!/bin/sh
 
 . ./mk/automk.sh
-. ./mk/avr.cc.sh
+. ./mk/avr.tools.sh
 
 automk_init "$@"
 
-find_avr_cc
+avr_find_tools
 
 write_config_mk
