@@ -1,15 +1,17 @@
-_OBJDIR=	${.CURDIR}/obj.${MACHINE}
+MAKEOBJDIR?=	${.CURDIR}/obj.${MACHINE}
 
-.if !make(obj) && !exists(${_OBJDIR})
-.  error Run 'make obj' first.
+.if !make(obj) && !exists(${MAKEOBJDIR})
+.BEGIN:
+	@echo "Run 'make obj' first!" >&2
+	@false
 .else
-.OBJDIR:	${_OBJDIR}
+.OBJDIR:	${MAKEOBJDIR}
 .endif
 
 .PHONY: obj clean cleandir
 
 obj:
-	mkdir -p ${_OBJDIR} ${OBJDIRS:S!^!${_OBJDIR}/!}
+	mkdir -p ${MAKEOBJDIR} ${OBJDIRS:S!^!${MAKEOBJDIR}/!}
 
 .if !empty(CLEANFILES)
 .NOPATH: ${CLEANFILES}
