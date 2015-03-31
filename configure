@@ -10,8 +10,5 @@ avr_find_arduino
 avr_find_tools
 
 write_config_mk
+make_depend
 
-say "Running $MAKE depend..."
-$MAKE depend
-say
-say "Now you need to run $MAKE."

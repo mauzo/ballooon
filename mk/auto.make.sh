@@ -29,3 +29,10 @@ make_obj () {
     Objdir="$($MAKE -V.OBJDIR)"
     say " $Objdir"
 }
+
+make_depend () {
+    say "Running $MAKE depend..."
+    log_write "$($MAKE depend 2>&1)"
+    say
+    say "Now you need to run $MAKE."
+}
