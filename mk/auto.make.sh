@@ -18,7 +18,7 @@ find_make () {
         [ -z "$m" ]         && continue
         say -v "    trying $m... "
 
-        out="$($m -V'${.CURDIR:?ok:nok}' 2>&1)"
+        out="$($m -f/dev/null -V'${.CURDIR:?ok:nok}' 2>&1)"
         log_write "$out"
         [ "$out" = ok ] || continue
 

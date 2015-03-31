@@ -2,9 +2,11 @@
 
 . ./mk/automk.sh
 . ./mk/avr.tools.sh
+. ./mk/avr.arduino.sh
 
 automk_init "$@"
 
+avr_find_arduino
 avr_find_tools
 
 write_config_mk

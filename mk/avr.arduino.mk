@@ -1,7 +1,7 @@
 .ifdef USE_ARDUINO
 
 .if empty(ARDUINO_DIR) || !exists(${ARDUINO_DIR})
-.  error ARDUINO_DIR must be set!
+BROKEN=		ARDUINO_DIR is not set!
 .endif
 
 libCore_SRCS=	wiring.c wiring_digital.c wiring_analog.c wiring_pulse.c \

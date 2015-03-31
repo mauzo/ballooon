@@ -1,14 +1,12 @@
 MAKEOBJDIR?=	${.CURDIR}/obj.${MACHINE}
 
 .if !make(obj) && !exists(${MAKEOBJDIR})
-.BEGIN:
-	@echo "Run 'make obj' first!" >&2
-	@false
+BROKEN=		Run 'make obj' first!
 .else
 .OBJDIR:	${MAKEOBJDIR}
 .endif
 
-.PHONY: obj clean cleandir
+.PHONY: obj clean cleandir .broken
 
 obj:
 	mkdir -p ${MAKEOBJDIR} ${OBJDIRS:S!^!${MAKEOBJDIR}/!}
@@ -31,3 +29,13 @@ cleandir:
 .else
 cleandir: clean cleandepend
 .endif
+
+all: .broken
+
+.broken:
+	@if [ -n '${BROKEN}' ]; then \
+		echo '${BROKEN}' >&2; \
+		false; \
+	else \
+		true; \
+	fi

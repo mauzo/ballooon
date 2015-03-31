@@ -9,8 +9,7 @@ CFLAGS+=	-DAMD
 .endif
 
 .include "mk/avr.mk"
-
-ARDUINO_DIR=	/usr/share/arduino
+.sinclude "config.mk"
 
 USE_ARDUINO=	${AMD:?AMD64:} Wire ${AMD:?:Core}
 

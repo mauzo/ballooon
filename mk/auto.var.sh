@@ -78,14 +78,17 @@ write_var () {
 }
 
 write_config_mk () {
-    local n= v= IFS="$fs"
+    local n= v= c= IFS="$fs"
 
     [ -d "$Objdir" ]        || err "write_config_mk called with no Objdir"
     [ -n "$Write_Vars" ]    || return
+
+    c="$Objdir/config.mk"
+    say "Writing $c..."
 
     for n in ${Write_Vars%$fs}
     do
         v="$(var_get $n)"
         echo "$n=$v"
-    done >"$Objdir/config.mk"
+    done >"$c"
 }
