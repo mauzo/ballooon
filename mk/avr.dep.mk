@@ -1,3 +1,6 @@
+.if !target(__<avr.dep.mk>__)
+__<avr.dep.mk>__:
+
 .PHONY: depend ${DEPENDFILE} cleandepend
 
 DEPENDFILE=	${.OBJDIR}/.depend
@@ -18,3 +21,5 @@ ${DEPENDFILE}: ${SRCS}
 
 cleandepend:
 	rm -f ${DEPENDFILE}
+
+.endif

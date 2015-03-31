@@ -1,3 +1,6 @@
+.if !target(__<avr.rules.mk>__)
+__<avr.rules.mk>__:
+
 .SUFFIXES: .c .cpp .o .i .ii .s
 
 .c.o:
@@ -17,3 +20,5 @@
 
 .cpp.s:
 	${CXX} ${CXXFLAGS} -S ${.IMPSRC} >${.TARGET}
+
+.endif

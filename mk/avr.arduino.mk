@@ -1,3 +1,6 @@
+.if !target(__<avr.arduino.mk>__)
+__<avr.arduino.mk>__:
+
 .ifdef USE_ARDUINO
 
 .if empty(ARDUINO_DIR) || !exists(${ARDUINO_DIR})
@@ -64,5 +67,7 @@ ${l}/${s}: ${s}
 ${l}.a:
 	${AR} rcs ${.TARGET} ${.ALLSRC}
 .endfor
+
+.endif
 
 .endif

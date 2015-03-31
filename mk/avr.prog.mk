@@ -1,3 +1,6 @@
+.if !target(__<avr.prog.mk>__)
+__<avr.prog.mk>__:
+
 OBJS?=		${SRCS:R:S/$/.o/g}
 CLEANFILES+=	${PROG} ${OBJS}
 OBJDIRS+=	${SRCS:H:u}
@@ -37,3 +40,4 @@ ${PROG}.eep: ${PROG}
 		--change-section-lma .eeprom=0 \
 		${PROG} ${.TARGET}
 
+.endif

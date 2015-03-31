@@ -1,3 +1,6 @@
+.if !target(__<avr.obj.mk>__)
+__<avr.obj.mk>__:
+
 _OBJDIR=	${.CURDIR}/obj.${MACHINE}
 
 .if !make(obj) && !exists(${_OBJDIR})
@@ -28,4 +31,6 @@ cleandir:
 	rm -rf ${.OBJDIR}
 .else
 cleandir: clean cleandepend
+.endif
+
 .endif

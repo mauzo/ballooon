@@ -1,3 +1,6 @@
+.if !target(__<avr.cpu.mk>__)
+__<avr.cpu.mk>__:
+
 .ifndef AMD
 
 MACHINE=	avr
@@ -9,5 +12,7 @@ AR=		avr-ar
 
 CFLAGS=		-mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=105
 LDFLAGS=	-mmcu=atmega328p
+
+.endif
 
 .endif
