@@ -15,12 +15,12 @@ LD?=	${CXX}
 LD?=	${CC}
 .endif
 
-.ifdef AMD
-all:	${PROG}
-.else
+.if ${TARGET} == avr
 CLEANFILES+=	${PROG}.hex ${PROG}.eep
 
 all:	${PROG}.hex ${PROG}.eep
+.else
+all:	${PROG}
 .endif
 
 .include "avr.obj.mk"

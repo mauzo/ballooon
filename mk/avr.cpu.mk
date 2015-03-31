@@ -1,7 +1,7 @@
 .if !target(__<avr.cpu.mk>__)
 __<avr.cpu.mk>__:
 
-.ifndef AMD
+.if ${TARGET} == avr
 
 MACHINE=	avr
 

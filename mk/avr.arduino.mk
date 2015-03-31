@@ -7,7 +7,7 @@ __<avr.arduino.mk>__:
 .  error ARDUINO_DIR must be set!
 .endif
 
-libCore_SRCS=	wiring.c wiring_digital.c wiring_analog.c wiring_pulse.c \
+libCore_SRCS?=	wiring.c wiring_digital.c wiring_analog.c wiring_pulse.c \
 		wiring_shift.c \
 		main.cpp new.cpp \
 		WString.cpp WMath.cpp WInterrupts.c \
@@ -15,10 +15,10 @@ libCore_SRCS=	wiring.c wiring_digital.c wiring_analog.c wiring_pulse.c \
 		USBCore.cpp CDC.cpp HID.cpp \
 		Tone.cpp IPAddress.cpp
 
-libCore_DIRS=	${ARDUINO_DIR}/hardware/arduino/cores/arduino \
+libCore_DIRS?=	${ARDUINO_DIR}/hardware/arduino/cores/arduino \
 		${ARDUINO_DIR}/hardware/arduino/variants/standard
 
-libWire_SRCS=	Wire.cpp twi.c
+libWire_SRCS?=	Wire.cpp twi.c
 
 .for u in ${USE_ARDUINO}
 .  if defined(lib${u}_DIRS)

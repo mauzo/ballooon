@@ -1,21 +1,20 @@
 # This is a BSD makefile. 
 # It requires BSD make (bmake), not GNU make (gmake).
 
-.ifdef AMD
 CC=	gcc48
 CXX=	g++48
-
-CFLAGS+=	-DAMD
-.endif
 
 .include "mk/avr.mk"
 
 ARDUINO_DIR=	/usr/local/arduino
 
-USE_ARDUINO=	${AMD:?AMD64:} Wire ${AMD:?:Core}
+USE_ARDUINO=	Wire Core
 
-libAMD64_SRCS=	main.c amd64.c Print.cpp Stream.cpp
-libAMD64_DIRS=	${.CURDIR}/amd64 ${libCore_DIRS}
+.if ${TARGET} != avr
+.PATH:		${.CURDIR}/amd64
+CFLAGS+=	-DAMD -I${.CURDIR}/amd64
+libCore_SRCS=	main.c amd64.c Print.cpp Stream.cpp
+.endif
 
 PROG=		ballooon
 SRCS=		ballooon.ino gps.cpp ubx.cpp warn.cpp
