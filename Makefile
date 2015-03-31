@@ -1,20 +1,18 @@
 # This is a BSD makefile. 
 # It requires BSD make (bmake), not GNU make (gmake).
 
-.ifdef AMD
-#CC=	gcc48
-#CXX=	g++48
-
-CFLAGS+=	-DAMD
-.endif
-
 .include "mk/avr.mk"
 .sinclude "config.mk"
 
-USE_ARDUINO=	${AMD:?AMD64:} Wire ${AMD:?:Core}
+.if ${TARGET} != avr
+AMD=		1
+CFLAGS+=	-DAMD -I${.CURDIR}/amd64
+.PATH:		${.CURDIR}/amd64
 
-libAMD64_SRCS=	main.c amd64.c Print.cpp Stream.cpp
-libAMD64_DIRS=	${.CURDIR}/amd64 ${libCore_DIRS}
+libCore_SRCS=	main.c amd64.c Print.cpp Stream.cpp
+.endif
+
+USE_ARDUINO=	Wire Core
 
 PROG=		ballooon
 SRCS=		ballooon.ino gps.cpp ubx.cpp warn.cpp

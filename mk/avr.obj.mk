@@ -1,11 +1,3 @@
-MAKEOBJDIR?=	${.CURDIR}/obj.${MACHINE}
-
-.if !make(obj) && !exists(${MAKEOBJDIR})
-BROKEN=		Run 'make obj' first!
-.else
-.OBJDIR:	${MAKEOBJDIR}
-.endif
-
 .PHONY: obj clean cleandir .broken
 
 obj:

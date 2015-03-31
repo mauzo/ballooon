@@ -1,13 +1,13 @@
-.ifndef AMD
+TARGET?=	avr
 
-MACHINE=	avr
+.if ${TARGET} == avr
 
-CC=		avr-gcc
-CXX=		avr-g++
-OBJCOPY=	avr-objcopy
-AR=		avr-ar
+CC=		${AVR_CC}
+CXX=		${AVR_CXX}
+OBJCOPY=	${AVR_OBJCOPY}
+AR=		${AVR_AR}
 
-CFLAGS=		-mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=105
-LDFLAGS=	-mmcu=atmega328p
+CFLAGS=		${AVR_MCU} ${AVR_CFLAGS}
+LDFLAGS=	${AVR_MCU}
 
 .endif

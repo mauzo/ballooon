@@ -8,6 +8,12 @@
 . ./mk/auto.func.sh
 
 automk_init () {
+    [ -z "$TARGET" ] && TARGET="$(uname -m)"
+    export TARGET
+    
+    log_init
+    say "Configuring for $TARGET."
+
     process_opts "$@"
     find_make
     make_obj

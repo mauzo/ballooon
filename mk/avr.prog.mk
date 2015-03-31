@@ -18,6 +18,7 @@ all:	${PROG}
 all:	${PROG}.hex ${PROG}.eep
 .endif
 
+.include "avr.obj.mk"
 .include "avr.dep.mk"
 .include "avr.rules.mk"
 

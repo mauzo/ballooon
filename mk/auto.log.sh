@@ -4,6 +4,11 @@ Log_Buffer=
 NL="
 "
 
+log_init () {
+    Log_Use_Buffer=1
+    Log_Buffer=
+}
+
 log_write () {
     if [ -n "$Log_Use_Buffer" ]
     then

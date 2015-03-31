@@ -4,7 +4,13 @@
 . ./mk/avr.tools.sh
 . ./mk/avr.arduino.sh
 
+TARGET=avr
 automk_init "$@"
+
+AVR_MCU=-mmcu=atmega328p
+write_var AVR_MCU
+AVR_CFLAGS="-DF_CPU=16000000L -DARDUINO=105"
+write_var AVR_CFLAGS
 
 avr_find_arduino
 avr_find_tools
@@ -12,3 +18,18 @@ avr_find_tools
 write_config_mk
 make_depend
 
+unset TARGET
+automk_init "$@"
+
+avr_find_arduino
+
+find_function clock_gettime \
+    "" "-lrt" \
+    <<ERR
+I cannot find the function clock_gettime(3). This is needed to emulate
+the Arduino millis() function when building host binaries.
+
+ERR
+
+write_config_mk
+make_depend
