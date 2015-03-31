@@ -8,3 +8,8 @@ automk_init "$@"
 avr_find_tools
 
 write_config_mk
+
+say "Running $MAKE depend..."
+$MAKE depend
+say
+say "Now you need to run $MAKE."

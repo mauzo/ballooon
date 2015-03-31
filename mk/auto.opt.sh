@@ -6,7 +6,7 @@ usage () {
 }
 
 process_opts () {
-    local opt= OPTIND= OPTARG= n= v=
+    local opt= OPTIND=0 OPTARG= n= v=
 
     while getopts ":vhD:-:" opt "$@"
     do

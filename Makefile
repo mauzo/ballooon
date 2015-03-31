@@ -2,15 +2,15 @@
 # It requires BSD make (bmake), not GNU make (gmake).
 
 .ifdef AMD
-CC=	gcc48
-CXX=	g++48
+#CC=	gcc48
+#CXX=	g++48
 
 CFLAGS+=	-DAMD
 .endif
 
 .include "mk/avr.mk"
 
-ARDUINO_DIR=	/usr/local/arduino
+ARDUINO_DIR=	/usr/share/arduino
 
 USE_ARDUINO=	${AMD:?AMD64:} Wire ${AMD:?:Core}
 
@@ -27,6 +27,10 @@ CFLAGS+=	-I${.CURDIR}
 CXXFLAGS=	${CFLAGS:N-std=*} -fno-exceptions
 LDFLAGS+=	-Os -Wl,--gc-sections
 LIBS+=		-lm
+
+.ifdef AMD
+LIBS+=		-lrt
+.endif
 
 .include "avr.prog.mk"
 .include "avr.arduino.mk"

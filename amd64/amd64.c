@@ -4,6 +4,10 @@
 
 #include <time.h>
 
+#ifndef CLOCK_REALTIME_FAST
+#  define CLOCK_REALTIME_FAST CLOCK_REALTIME
+#endif
+
 long
 millis (void)
 {

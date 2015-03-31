@@ -10,7 +10,7 @@ find_make () {
     then
         try="$MAKE"
     else
-        list_add try make bmake
+        list_add try make bmake pmake
     fi
 
     for m in $try
@@ -18,7 +18,7 @@ find_make () {
         [ -z "$m" ]         && continue
         say -v "    trying $m... "
 
-        out="$($m -V".CURDIR:?ok:nok" 2>&1)"
+        out="$($m -V'${.CURDIR:?ok:nok}' 2>&1)"
         log_write "$out"
         [ "$out" = ok ] || continue
 
