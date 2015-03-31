@@ -5,7 +5,8 @@ _avr_check_arduino () {
 }
 
 avr_find_arduino () {
-    look_for ARDUINO_DIR "Arduino SDK" _avr_check_arduino \
+    look_for ARDUINO_DIR "Arduino SDK" \
+        _avr_check_arduino -- \
         /usr/local/arduino /usr/share/arduino \
         <<MSG
 I can't find the Arduino SDK. You may need to install the 'arduino' or

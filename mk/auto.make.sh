@@ -6,7 +6,8 @@ _check_make () {
 }
 
 find_make () {
-    look_for MAKE "a BSD make" _check_make \
+    look_for MAKE "a BSD make" \
+        _check_make -- \
         make bmake pmake \
         <<MSG
 I can't find a BSD make. You may need to install a 'bmake' package, or

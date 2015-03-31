@@ -1,10 +1,17 @@
 look_for () {
+    [ $# -ge 3 ] || err "Not enough args for look_for"
     local var="$1"
     local title="$2"
     local check="$3"
     shift 3
-    local try= t= IFS="$fs"
+    local args= try= t= IFS="$fs"
 
+    while [ $# -gt 0 -a "$1" != "--" ]
+    do
+        list_add args "$1"
+        shift
+    done
+    shift
 
     if [ -n "$(var_get $var)" ]
     then
@@ -13,12 +20,14 @@ look_for () {
         list_add try "$@"
     fi
 
+    [ -z "$try" ] && fail
+
     say -N "Looking for $title..."
 
     for t in ${try%$fs}
     do
         say -v "    $t"
-        $check "$t"     || continue
+        $check "$t" ${args%$fs} || continue
 
         say " $t"
         var_set $var "$t"
