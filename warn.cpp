@@ -32,7 +32,7 @@ serial_write (const char *msg)
 void
 warn_nl (byte level)
 {
-#ifdef AMD
+#ifdef HOST
     warnx(level, "\n");
 #else
     warnx(level, "\r\n");

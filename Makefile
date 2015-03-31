@@ -11,9 +11,9 @@ ARDUINO_DIR=	/usr/local/arduino
 USE_ARDUINO=	Wire Core
 
 .if ${TARGET} != avr
-.PATH:		${.CURDIR}/amd64
-CFLAGS+=	-DAMD -I${.CURDIR}/amd64
-libCore_SRCS=	main.c amd64.c Print.cpp Stream.cpp
+.PATH:		${.CURDIR}/host
+CFLAGS+=	-DHOST -I${.CURDIR}/host
+libCore_SRCS=	main.c host.c Print.cpp Stream.cpp
 .endif
 
 PROG=		ballooon
