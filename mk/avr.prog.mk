@@ -15,6 +15,8 @@ LD?=	${CC}
 .ifdef AMD
 all:	${PROG}
 .else
+CLEANFILES+=	${PROG}.hex ${PROG}.eep
+
 all:	${PROG}.hex ${PROG}.eep
 .endif
 

@@ -40,6 +40,8 @@ CLEANFILES+=	${l}/${s:R}.o ${l}/${s}
 .  endfor
 .endfor
 
+CLEANFILES+=	${SRCS:M*.ino:S/.ino$/.cpp/}
+
 .SUFFIXES: .ino
 
 .ino.cpp:
