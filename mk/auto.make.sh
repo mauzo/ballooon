@@ -2,7 +2,7 @@ MAKE=
 Objdir=
 
 _check_make () {
-    [ "$("$1" -f/dev/null -V'${.CURDIR:?ok:nok}' 2>&1)" = ok ]
+    [ "$("$1" -V'${.CURDIR:?ok:nok}' 2>&1)" = ok ]
 }
 
 find_make () {

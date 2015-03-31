@@ -12,7 +12,7 @@ main (void)
     $func();
 }
 "
-    try_cc try.c
+    try_cc try.c $libs
     rv=$?
 
     try_clean

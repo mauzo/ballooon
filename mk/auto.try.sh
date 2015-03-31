@@ -36,9 +36,8 @@ _try_run () {
 }
 
 try_cc () {
-    local name="$1"
     local cmd
 
     [ -n "$CC" ]        || err "try_cc called with no CC"
-    _try_run $CC -o try "$name"
+    _try_run $CC -o try "$@"
 }
