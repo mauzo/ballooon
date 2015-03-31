@@ -32,6 +32,39 @@ UBXchecksum (byte data)
     Checksum_B += Checksum_A;
 }
 
+void ubx_zero_buff()
+{
+  for(int i = 0; i < sizeof(UBXbuffer); i++)
+  {
+    UBXbuffer[i] = 0;
+  }
+}
+
+boolean ubx_get_sync()
+{
+  char sync[2];
+
+  Wire.requestFrom(GPS_ADDR, 2, 0); //No stop as we are not finished!
+
+  if(Wire.available() != 2)
+  {
+    Serial.print(Wire.available());
+    Serial.println("Error: unexpected number of bytes to read at sync.");
+    return false;
+  }
+
+  sync[0] = Wire.read();
+  sync[1] = Wire.read();
+
+  if(sync[0] != 0xB5 && sync[1] != 0x62)
+  {
+    return false;
+  }
+  else
+    Serial.println("Synced!");
+    return true;
+}
+
 boolean 
 getGPSData (ubx_addr adr)
 {
@@ -40,6 +73,12 @@ getGPSData (ubx_addr adr)
     boolean EOM       = false;
     
     while (!EOM && !timeout) {
+        if(!ubx_get_sync())
+        {
+            continue;
+        }
+        UBXstate = 2;
+        
         if (millis() > timeoutTime) {
             timeout = true;
             Serial.println("getGPSData timed out.");
