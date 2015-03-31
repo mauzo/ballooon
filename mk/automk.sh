@@ -1,6 +1,7 @@
 . ./mk/auto.var.sh
 . ./mk/auto.opt.sh
 . ./mk/auto.log.sh
+. ./mk/auto.find.sh
 . ./mk/auto.make.sh
 
 automk_init () {

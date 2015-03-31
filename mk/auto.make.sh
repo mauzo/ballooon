@@ -1,40 +1,19 @@
 MAKE=
 Objdir=
 
+_check_make () {
+    [ "$("$1" -f/dev/null -V'${.CURDIR:?ok:nok}' 2>&1)" = ok ]
+}
+
 find_make () {
-    local cwd m out try= IFS="$fs"
-
-    say -N "Looking for a BSD make..."
-
-    if [ -n "$MAKE" ]
-    then
-        try="$MAKE"
-    else
-        list_add try make bmake pmake
-    fi
-
-    for m in $try
-    do
-        [ -z "$m" ]         && continue
-        say -v "    trying $m... "
-
-        out="$($m -f/dev/null -V'${.CURDIR:?ok:nok}' 2>&1)"
-        log_write "$out"
-        [ "$out" = ok ] || continue
-
-        say " $m"
-        MAKE="$m"
-        return
-    done
-
-    echo "not found."
-    cat <<ERR >&2
+    look_for MAKE "a BSD make" _check_make \
+        make bmake pmake \
+        <<MSG
 I can't find a BSD make. You may need to install a 'bmake' package, or
 you can get a portable version from
     http://www.crufty.net/help/sjg/bmake.htm
 
-ERR
-    exit 2
+MSG
 }
 
 make_obj () {
