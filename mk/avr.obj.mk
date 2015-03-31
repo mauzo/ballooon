@@ -1,18 +1,12 @@
 .if !target(__<avr.obj.mk>__)
 __<avr.obj.mk>__:
 
-_OBJDIR=	${.CURDIR}/obj.${MACHINE}
+.PHONY: clean cleandir
 
-.if !make(obj) && !exists(${_OBJDIR})
-.  error Run 'make obj' first.
-.else
-.OBJDIR:	${_OBJDIR}
-.endif
+.BEGIN: .objdirs
 
-.PHONY: obj clean cleandir
-
-obj:
-	mkdir -p ${_OBJDIR} ${OBJDIRS:S!^!${_OBJDIR}/!}
+.objdirs:
+	@mkdir -p ${OBJDIRS}
 
 .if !empty(CLEANFILES)
 .NOPATH: ${CLEANFILES}

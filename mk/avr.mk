@@ -3,6 +3,9 @@ __<avr.mk>__:
 
 .PATH: ${.CURDIR}/mk
 
+TARGET?=	avr
+.include "avr.obj.init.mk"
+
 .PHONY: all
 
 .MAIN: all
