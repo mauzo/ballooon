@@ -1,4 +1,5 @@
 look_for () {
+    local_enter
     [ $# -ge 3 ] || err "Not enough args for look_for"
     local var="$1"
     local title="$2"
@@ -31,6 +32,7 @@ look_for () {
 
         say " $t"
         var_set $var "$t"
+        local_leave
         return
     done
 

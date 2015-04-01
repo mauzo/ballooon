@@ -8,20 +8,12 @@ var_clean_name () {
     echo "$1" | tr -dc A-Za-z0-9_
 }
 
-quote () {
-    echo "$1" | sed -ne's/[$`"\\]/\\&/g;p;q'
-}
-
 var_set () {
-    local n="$(var_clean_name "$1")"
-    local v="$(quote "$2")"
-
-    eval "$n=\"$v\""
+    eval "$(var_clean_name "$1")=\"$(quote "$2")\""
 }
 
 var_get () {
-    local n="$(var_clean_name "$1")"
-    eval "echo \"\$$n\""
+    eval "echo \"\$$(var_clean_name "$1")\""
 }
 
 var_default () {
@@ -36,17 +28,19 @@ var_default () {
 # string.
 
 list_add () {
-    local n="$1" v=
+    local_enter n="$1" v=
     shift
 
     for v in "$@"
     do
         var_set "$n" "$(var_get "$n")$v$fs"
     done
+
+    local_leave
 }
 
 list_add_if () {
-    local n="$1" v=
+    local_enter n="$1" v=
     shift
 
     for v in "$@"
@@ -54,31 +48,37 @@ list_add_if () {
         [ -n "$v" ] || continue
         var_set "$n" "$(var_get "$n")$v$fs"
     done
+
+    local_leave
 }
 
 list_find () {
-    local n="$1"
+    local_enter n="$1"
     local k="$2" 
     local v=
 
     case "$fs$(var_get $n)" in
-    *"$fs$k$fs"*)   return 0    ;;
-    *)              return 1    ;;
+    *"$fs$k$fs"*)   true    ;;
+    *)              false   ;;
     esac
+
+    local_leave
 }
 
 write_var () {
-    local v=
+    local_enter v=
 
     for v in "$@"
     do
         list_find Write_Vars "$v"    && continue
         list_add Write_Vars "$v"
     done
+
+    local_leave
 }
 
 write_config_mk () {
-    local n= v= c= IFS="$fs"
+    local_enter n= v= c= IFS="$fs"
 
     [ -d "$Objdir" ]        || err "write_config_mk called with no Objdir"
     [ -n "$Write_Vars" ]    || return
@@ -91,4 +91,6 @@ write_config_mk () {
         v="$(var_get $n)"
         echo "$n=$v"
     done >"$c"
+
+    local_leave
 }

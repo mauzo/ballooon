@@ -1,4 +1,5 @@
 _check_function () {
+    local_enter
     local libs="$1"
     local func="$2"
     local rv=
@@ -16,12 +17,14 @@ main (void)
     rv=$?
 
     try_clean
+    local_leave
     return $rv
 }
 
 find_function () {
+    local_enter
     local func="$1"
-    shift 1
+    shift
     local libs=
 
     look_for libs $func \
@@ -33,4 +36,6 @@ find_function () {
         LIBS="$LIBS $libs"
         write_var LIBS
     fi
+
+    local_leave
 }

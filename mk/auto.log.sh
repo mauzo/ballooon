@@ -28,7 +28,7 @@ log_open () {
 say () {
     local opt_N= opt_v=
     do_opts "Nv" "$@"
-    shift $((OPTIND - 1))
+    [ $# -ge $OPTIND ] && shift $((OPTIND - 1))
 
     log_write "$*"
 

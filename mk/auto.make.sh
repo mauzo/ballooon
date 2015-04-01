@@ -18,6 +18,7 @@ MSG
 }
 
 make_obj () {
+    local_enter
     local out
 
     [ -n "$MAKE" ] || err "make_obj called with no MAKE"
@@ -29,6 +30,8 @@ make_obj () {
 
     Objdir="$($MAKE -V.OBJDIR)"
     say " $Objdir"
+
+    local_leave
 }
 
 make_depend () {

@@ -1,3 +1,4 @@
+. ./mk/auto.shlocal.sh
 . ./mk/auto.var.sh
 . ./mk/auto.opt.sh
 . ./mk/auto.log.sh

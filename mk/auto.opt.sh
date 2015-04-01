@@ -6,6 +6,7 @@ usage () {
 }
 
 process_opts () {
+    local_enter
     local opt= OPTIND=0 OPTARG= n= v=
 
     Verbose=
@@ -42,10 +43,12 @@ process_opts () {
     then
         usage
     fi
+
+    local_leave
 }
 
 do_opts () {
-    local opt OPTARG q v
+    local_enter opt OPTARG q v
     local opts="$1"
     shift
     
@@ -64,4 +67,6 @@ do_opts () {
             ;;
         esac
     done
+
+    local_leave
 }
