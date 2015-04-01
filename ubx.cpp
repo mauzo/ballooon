@@ -44,9 +44,30 @@ void ubx_zero_buff()
   }
 }
 
+static unsigned int
+ubx_avail(void)
+{
+    unsigned int bytes_avail;
+  
+    Wire.beginTransmission(GPS_ADDR);
+    Wire.write(0xFD);
+    Wire.endTransmission(0);
+    
+    Wire.requestFrom(GPS_ADDR, 2);
+
+    bytes_avail = (uint16_t)Wire.read() << 8;
+    bytes_avail |= (uint16_t)Wire.read();
+    
+    return bytes_avail;
+}
+
 static byte
 ubx_getb (void)
 {
+    unsigned int b_av;
+    b_av = ubx_avail();
+    warnf(WDEBUG, "Bytes available: %u", b_av);
+
     if (!Wire.available())
         Wire.requestFrom(GPS_ADDR, BUFFER_LENGTH);
 
@@ -61,13 +82,18 @@ ubx_get_sync (void)
 
     while (1) {
         /* XXX timeout */
-        b = ubx_getb();
+        if(Wire.available() || ubx_avail())
+        {
+            b = ubx_getb();
+            delay(10);
+            continue;
+        }
 
         switch (b) {
         case 0xff:
             warn(WDEBUG, "Got 0xff looking for sync");
             sync = 0;
-            delay(10);
+            //delay(10);
             break;
         case 0xb5:
             sync = 1;
