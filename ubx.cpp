@@ -26,6 +26,9 @@ static byte UBXpayloadIdx;
 static byte UBXckA;
 static byte UBXckB;
 
+static byte     ubx_getb            (void);
+static void     ubx_get_sync        (void);
+
 void 
 UBXchecksum (byte data)
 {
@@ -41,134 +44,138 @@ void ubx_zero_buff()
   }
 }
 
-boolean ubx_get_sync()
+static byte
+ubx_getb (void)
 {
-  char sync[2];
+    if (!Wire.available())
+        Wire.requestFrom(GPS_ADDR, BUFFER_LENGTH);
 
-  Wire.requestFrom(GPS_ADDR, 2, 0); //No stop as we are not finished!
+    return Wire.read();
+}
 
-  if(Wire.available() != 2)
-  {
-    Serial.print(Wire.available());
-    Serial.println("Error: unexpected number of bytes to read at sync.");
-    return false;
-  }
+static void
+ubx_get_sync (void)
+{
+    byte b;
+    byte sync = 0;
 
-  sync[0] = Wire.read();
-  sync[1] = Wire.read();
+    while (1) {
+        /* XXX timeout */
+        b = ubx_getb();
 
-  if(sync[0] != 0xB5 && sync[1] != 0x62)
-  {
-    return false;
-  }
-  else
-    Serial.println("Synced!");
-    return true;
+        switch (b) {
+        case 0xff:
+            warn(WDEBUG, "Got 0xff looking for sync");
+            sync = 0;
+            delay(10);
+            break;
+        case 0xb5:
+            sync = 1;
+            break;
+        case 0x62:
+            if (sync) {
+                warn(WDEBUG, "Got sync");
+                return;
+            }
+            /* fall through */
+        default:
+            warnf(WWARN, "Unexpected sync byte 0x%02x", b);
+            sync = 0;
+            break;
+        }
+    }
 }
 
 boolean 
 getGPSData (ubx_addr adr)
 {
     unsigned long timeoutTime = millis() + 3000;
-    boolean timeout   = false;
     boolean EOM       = false;
+    byte tempChar;
     
-    while (!EOM && !timeout) {
-        if(!ubx_get_sync())
-        {
-            continue;
-        }
-        UBXstate = 2;
+    ubx_get_sync();
+    UBXstate = 2;
         
+    while (!EOM) {
         if (millis() > timeoutTime) {
-            timeout = true;
             warn(WWARN, "getGPSData timed out.");
             return false;
         }
-        
-        if (!Wire.available()) {
-            Wire.requestFrom(adr, BUFFER_LENGTH);
-        }
-        else {
-            byte tempChar;
             
-            while (Wire.available() && !EOM) {
-                tempChar = Wire.read();
-                
-                switch(UBXstate) {
-                case 0:         // Awaiting Sync Char 1
-                    if (tempChar == UBX_SYNC_CHAR1) // B5
-                        UBXstate++;
-                    break;
-                case 1:         // Awauting Sync Char 2
-                    if (tempChar == UBX_SYNC_CHAR2) // 62
-                        UBXstate++;
-                    else
-                        // Wrong sequence so start again
-                        UBXstate = 0;
-                    break;
-                case 2:         // Awaiting Class
-                    UBXclass = tempChar;
-                    UBXchecksum(UBXclass);
-                    UBXstate++;
-                    break;
-                case 3:         // Awaiting Id
-                    UBXid = tempChar;
-                    UBXchecksum(UBXid);
-                    UBXstate++;
-                    break;
-                case 4:         // Awaiting Length LSB 
-                                // (little endian so LSB is first)
-                    UBXlengthLSB = tempChar;
-                    UBXchecksum(UBXlengthLSB);
-                    UBXstate++;       
-                    break;
-                case 5:         // Awaiting Length MSB
-                    UBXlengthMSB = tempChar;
-                    UBXchecksum(UBXlengthMSB);
-                    UBXstate++;
-                    UBXpayloadIdx = 0;
-                    // Convert little endian MSB & LSB into integer
-                    UBXlength = (byte)(UBXlengthMSB << 8) | UBXlengthLSB;
-                    if (UBXlength >= UBX_MAX_PAYLOAD) {
-                        warn(WWARN, "UBX payload length too large (>100");
-                        UBXstate    = 0; // Bad data received so reset and 
-                        Checksum_A  = 0;
-                        Checksum_B  = 0;
-                        return false;
-                    }
-                    break;
-                case 6:
-                    UBXbuffer[UBXpayloadIdx] = tempChar;
-                    UBXchecksum(tempChar);
-                    UBXpayloadIdx++;
-                    if (UBXpayloadIdx == UBXlength)
-                        // Just processed last byte of payload, so move on
-                        UBXstate++; 
-                    break;
-                case 7:         // Awaiting Checksum 1
-                    UBXckA = tempChar;
-                    UBXstate++;
-                    break;
-                case 8:         // Awaiting Checksum 2
-                    UBXckB = tempChar;
-                    // Check the calculated checksums match actual checksums
-                    if ((Checksum_A == UBXckA) && (Checksum_B == UBXckB)) {
-                        // Checksum is good so parse the message
-                        parseUBX();
-                        EOM = true;
-                    }
-                    else {
-                        warn(WERROR, "UBX PAYLOAD BAD CHECKSUM!!");
-                        return false;
-                    }
-                    
-                    UBXstate    = 0;    // Start again at 0
-                    Checksum_A  = 0;
-                    Checksum_B  = 0;
-                    break;
-                }
+        tempChar = ubx_getb();
+        
+        switch(UBXstate) {
+        case 0:         // Awaiting Sync Char 1
+            if (tempChar == UBX_SYNC_CHAR1) // B5
+                UBXstate++;
+            break;
+        case 1:         // Awauting Sync Char 2
+            if (tempChar == UBX_SYNC_CHAR2) // 62
+                UBXstate++;
+            else
+                // Wrong sequence so start again
+                UBXstate = 0;
+            break;
+        case 2:         // Awaiting Class
+            UBXclass = tempChar;
+            UBXchecksum(UBXclass);
+            UBXstate++;
+            break;
+        case 3:         // Awaiting Id
+            UBXid = tempChar;
+            UBXchecksum(UBXid);
+            UBXstate++;
+            break;
+        case 4:         // Awaiting Length LSB 
+                        // (little endian so LSB is first)
+            UBXlengthLSB = tempChar;
+            UBXchecksum(UBXlengthLSB);
+            UBXstate++;       
+            break;
+        case 5:         // Awaiting Length MSB
+            UBXlengthMSB = tempChar;
+            UBXchecksum(UBXlengthMSB);
+            UBXstate++;
+            UBXpayloadIdx = 0;
+            // Convert little endian MSB & LSB into integer
+            UBXlength = (byte)(UBXlengthMSB << 8) | UBXlengthLSB;
+            if (UBXlength >= UBX_MAX_PAYLOAD) {
+                warn(WWARN, "UBX payload length too large (>100");
+                UBXstate    = 0; // Bad data received so reset and 
+                Checksum_A  = 0;
+                Checksum_B  = 0;
+                return false;
             }
+            break;
+        case 6:
+            UBXbuffer[UBXpayloadIdx] = tempChar;
+            UBXchecksum(tempChar);
+            UBXpayloadIdx++;
+            if (UBXpayloadIdx == UBXlength)
+                // Just processed last byte of payload, so move on
+                UBXstate++; 
+            break;
+        case 7:         // Awaiting Checksum 1
+            UBXckA = tempChar;
+            UBXstate++;
+            break;
+        case 8:         // Awaiting Checksum 2
+            UBXckB = tempChar;
+            // Check the calculated checksums match actual checksums
+            if ((Checksum_A == UBXckA) && (Checksum_B == UBXckB)) {
+                // Checksum is good so parse the message
+                parseUBX();
+                EOM = true;
+            }
+            else {
+                warn(WERROR, "UBX PAYLOAD BAD CHECKSUM!!");
+                return false;
+            }
+            
+            UBXstate    = 0;    // Start again at 0
+            Checksum_A  = 0;
+            Checksum_B  = 0;
+            break;
         }
     }
     // We're at the end, which must mean everything's ok.

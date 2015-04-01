@@ -3,6 +3,7 @@
  */
 
 #include <time.h>
+#include <unistd.h>
 
 long
 millis (void)
@@ -22,3 +23,8 @@ millis (void)
     }
 }
 
+void
+delay (unsigned long d)
+{
+    usleep(d * 1000);
+}
