@@ -85,7 +85,7 @@ write_config_mk () {
 
     c="$Objdir/config.mk"
     say "Writing $c..."
-
+    
     for n in ${Write_Vars%$fs}
     do
         v="$(var_get $n)"

@@ -13,5 +13,6 @@ I can't find the Arduino SDK. You may need to install the 'arduino' or
 'arduino-core' package, or pass -Darduino_dir= to configure.
 
 MSG
+    write_var ARDUINO_DIR
 }
 

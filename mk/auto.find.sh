@@ -31,7 +31,6 @@ look_for () {
 
         say " $t"
         var_set $var "$t"
-        write_var $var
         return
     done
 
