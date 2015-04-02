@@ -2,8 +2,13 @@
  * amd64 implementations for Arduino functions.
  */
 
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+
+#include "host.h"
 
 long
 millis (void)
@@ -27,4 +32,21 @@ void
 delay (unsigned long d)
 {
     usleep(d * 1000);
+}
+
+#define GREEN   "\033[32m"
+#define RESET   "\033[0m"
+
+void
+host_warn (const char *fmt, ...)
+{
+    va_list ap;
+    char    *msg;
+
+    va_start(ap, fmt);
+    vasprintf(&msg, fmt, ap);
+    va_end(ap);
+
+    fprintf(stderr, GREEN "%s" RESET, msg);
+    free(msg);
 }
