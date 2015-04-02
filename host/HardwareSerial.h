@@ -8,8 +8,6 @@
 #include <Print.h>
 #include <Stream.h>
 
-#warning My HardwareSerial.h
-
 class HardwareSerial : public Stream {
 public:
     HardwareSerial () { }
