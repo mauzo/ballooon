@@ -5,8 +5,10 @@
 #ifndef __UBX_H
 #define __UBX_H
 
+#include "ubx_pkt.h"
+
 // set to maximum message you want to receive
-#define UBX_MAX_PAYLOAD     100
+#define UBX_BUFSIZ          100
 #define UBX_SYNC_CHAR1      0xB5
 #define UBX_SYNC_CHAR2      0x62
 
@@ -15,15 +17,9 @@
  */
 typedef int    ubx_addr;
 
-/* XXX these have to be global because they're used in gps.c */
-extern byte     UBXclass;
-extern byte     UBXid;
-extern byte     UBXbuffer[UBX_MAX_PAYLOAD];
-
-void        UBXchecksum     (byte data);
-boolean     getGPSData      (ubx_addr adr);
 boolean     getUBX_ACK      (ubx_addr adr, byte *msg);
 boolean     sendUBX         (ubx_addr adr, byte *msg, byte len);
 void        ubx_setup       (void);
+ubx_pkt *   ubx_read        (ubx_addr adr);
 
 #endif

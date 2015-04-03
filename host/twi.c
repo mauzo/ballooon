@@ -45,6 +45,11 @@ twi_readFrom (uint8_t addr, uint8_t *data, uint8_t len, uint8_t stop)
     host_warn("Call to twi_readFrom addr [%x] len [%u] stop [%s]\n",
         addr, len, (stop?"yes":"no"));
 
+    if (!r->dat) {
+        host_warn("  Nothing to return!\n");
+        exit(1);
+    }
+
     while (reg_read < 0xff && l) {
         switch (reg_read) {
         case 0xfd:
@@ -61,11 +66,6 @@ twi_readFrom (uint8_t addr, uint8_t *data, uint8_t len, uint8_t stop)
         reg_read++; data++; l--;
     }
     if (!l) goto out;
-
-    if (!r->dat) {
-        host_warn("  Nothing to return!\n");
-        exit(1);
-    }
 
     host_warn("  returning:");
     while (l && r->len) {

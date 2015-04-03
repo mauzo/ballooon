@@ -5,7 +5,6 @@
 #include <Arduino.h>
 
 #include "ubx.h"
-#include "ubx_pkt.h"
 #include "gps.h"
 #include "task.h"
 #include "warn.h"
@@ -37,9 +36,9 @@ static GPS_DATA         lastKnownFix;
 static boolean          gpsLock         = false;
 static unsigned long    gpsCheckTime;
 
-static void     gps_setup   (void);
-static void     gps_run     (unsigned long now);
-static long     join4Bytes  (byte *data);
+static byte     gps_parse_pvt   (ubx_nav_pvt *pkt);
+static void     gps_setup       (void);
+static void     gps_run         (unsigned long now);
 
 task gps_task = {
     .name   = "GPS",
@@ -53,14 +52,21 @@ task gps_task = {
 static void
 gps_run (unsigned long now)
 {
+    ubx_nav_pvt *pkt;
+
     warn(WDEBUG, "Requesting NAV-PVT.");
     if(!sendUBX(GPS_ADDR, reqNAV_PVT, sizeof(reqNAV_PVT)))
         warn(WERROR, "Error sending NAV-PVT");
-    getGPSData(GPS_ADDR);
-    checkForLock();
-    printGPSData();
 
-    gps_task.when = now + 10000;
+    pkt = (ubx_nav_pvt *)ubx_read(GPS_ADDR);
+    if (pkt && gps_parse_pvt(pkt)) {
+        checkForLock();
+        printGPSData();
+        gps_task.when = now + 10000;
+    }
+    else {
+        gps_task.when = now + 3000;
+    }
 }
 
 static void
@@ -117,37 +123,27 @@ checkForLock (void)
 }
 
 // Chops out only the data I want from the UBX sentence
-void 
-parseUBX (void)
+static byte 
+gps_parse_pvt (ubx_nav_pvt *pkt)
 {
-    warnf(WDEBUG, "Decoding packet class [%x] id [%x]", UBXclass, UBXid);
-    if(UBXclass == 0x01 && UBXid == 0x07) {
-        gpsData.Hr      = UBXbuffer[8];
-        gpsData.Min     = UBXbuffer[9];
-        gpsData.Sec     = UBXbuffer[10];
-        gpsData.Valid   = UBXbuffer[11];
-        gpsData.fixType = UBXbuffer[20];
-        gpsData.numSats = UBXbuffer[23];
-        gpsData.Lon     = join4Bytes(&UBXbuffer[24]) / 100;
-        gpsData.Lat     = join4Bytes(&UBXbuffer[28]) / 100;
-        gpsData.Alt     = join4Bytes(&UBXbuffer[36]) / 100;
+    warnf(WDEBUG, "Decoding packet type [%04x]", pkt->type);
+    if (pkt->type != UBX_TYP_NAV_PVT) {
+        warnf(WWARN, "Not a NAV-PVT packet");
+        return 0;
     }
+
+    gpsData.Valid   = pkt->valid;
+    if (gpsData.Valid & UBX_NAVPVT_VALID_TIME) {
+        gpsData.Hr      = pkt->hour;
+        gpsData.Min     = pkt->min;
+        gpsData.Sec     = pkt->sec;
+    }
+
+    gpsData.fixType = pkt->fix_type;
+    gpsData.numSats = pkt->num_sv;
+    gpsData.Lon     = pkt->lon / 100;
+    gpsData.Lat     = pkt->lat / 100;
+    gpsData.Alt     = pkt->height / 100;
+
+    return 1;
 }
-
-// Joins 4 bytes into one long. Pointers!
-static long 
-join4Bytes (byte *data)
-{
-    union long_union {
-        int32_t dword;
-        uint8_t  byte[4];
-    } longUnion;
-
-    longUnion.byte[0] = *data;
-    longUnion.byte[1] = *(data+1);
-    longUnion.byte[2] = *(data+2);
-    longUnion.byte[3] = *(data+3);
-
-    return(longUnion.dword);
-}
-

@@ -6,54 +6,28 @@
 #include <Wire.h>
 
 #include "ubx.h"
-#include "gps.h"
 #include "warn.h"
 
-/* XXX these have to be global because they're used in gps.c */
-byte    UBXclass;
-byte    UBXid;
-byte    UBXbuffer[UBX_MAX_PAYLOAD];
+static byte     ubx_buf[UBX_BUFSIZ];
+static byte     ubx_dropped;
 
-// Variables that are filled by NAV-PVT:
-// (How many of these really need to be global? Move some to getGPSData())
-static byte UBXstate    = 0;
-static byte Checksum_A  = 0;
-static byte Checksum_B  = 0;
-static byte UBXlengthLSB;
-static byte UBXlengthMSB;
-static byte UBXlength;
-static byte UBXpayloadIdx;
-static byte UBXckA;
-static byte UBXckB;
-
-static byte     ubx_getb            (void);
-static void     ubx_get_sync        (void);
-
-void 
-UBXchecksum (byte data)
-{
-    Checksum_A += data;
-    Checksum_B += Checksum_A;
-}
-
-void ubx_zero_buff()
-{
-  for(int i = 0; i < sizeof(UBXbuffer); i++)
-  {
-    UBXbuffer[i] = 0;
-  }
-}
+static byte     ubx_check_sum       (ubx_pkt *pkt);
+static void     ubx_drop            (ubx_addr adr, uint16_t len);
+static byte     ubx_getb            (ubx_addr adr);
+static void     ubx_get_buf         (ubx_addr adr, byte *buf, byte len);
+static byte     ubx_get_sync        (ubx_addr adr);
 
 static unsigned int
-ubx_avail(void)
+ubx_avail(ubx_addr adr)
 {
     unsigned int bytes_avail;
   
-    Wire.beginTransmission(GPS_ADDR);
+    Wire.beginTransmission(adr);
     Wire.write(0xFD);
+    /* it's important not to send a STOP here */
     Wire.endTransmission(0);
     
-    Wire.requestFrom(GPS_ADDR, 2);
+    Wire.requestFrom(adr, 2);
 
     bytes_avail = (uint16_t)Wire.read() << 8;
     bytes_avail |= (uint16_t)Wire.read();
@@ -63,28 +37,75 @@ ubx_avail(void)
 }
 
 static byte
-ubx_getb (void)
+ubx_check_sum (ubx_pkt *pkt)
+{
+    byte    *p  = (byte *)pkt;
+    int     l   = pkt->len + UBX_HEADSIZ;
+    byte    a = 0, b = 0;
+
+    while (l) {
+        a += *p;
+        b += a;
+        p++; l--;
+    }
+
+    if (p[0] == a && p[1] == b)
+        return 1;
+
+    warnf(WWARN, "UBX packet failed checksum [%02x%02x] vs [%02x%02x]",
+        p[0], p[1], a, b);
+    ubx_drop(0, 0);
+    return 0;
+}
+
+static void
+ubx_drop (ubx_addr adr, uint16_t len)
+{
+    /* XXX check for too many drops */
+    warn(WWARN, "Dropping UBX packet");
+    ubx_dropped++;
+
+    while (len--)
+        ubx_getb(adr);
+}
+
+static byte
+ubx_getb (ubx_addr adr)
 {
     if (!Wire.available())
-        Wire.requestFrom(GPS_ADDR, BUFFER_LENGTH);
+        Wire.requestFrom(adr, BUFFER_LENGTH);
 
     return Wire.read();
 }
 
 static void
-ubx_get_sync (void)
+ubx_get_buf (ubx_addr adr, byte *buf, byte len)
 {
-    byte b;
-    byte sync = 0;
+    while (len--)
+        *buf++ = ubx_getb(adr);
+}
+
+static byte
+ubx_get_sync (ubx_addr adr)
+{
+    byte    b;
+    byte    sync       = 0;
+    int     timeout    = 300;
 
     while (1) {
-        /* XXX timeout */
-        if(Wire.available() || ubx_avail())
-        {
-            b = ubx_getb();
+        /* XXX I don't like the fact that we only have one buffer,
+         * inside Wire, for communication with all devices on the bus.
+         * It's not a problem atm but would become one if we had more
+         * than one device.
+         */
+        if(Wire.available() || ubx_avail(adr)) {
+            b = ubx_getb(adr);
         }
-        else
-        {
+        else {
+            if (!timeout--) {
+                warn(WWARN, "Timeout looking for UBX sync");
+                return 0;
+            }
             delay(10);
             continue;
         }
@@ -93,17 +114,13 @@ ubx_get_sync (void)
         case 0xff:
             warn(WDEBUG, "Got 0xff looking for sync");
             sync = 0;
-            //delay(10);
             break;
         case 0xb5:
-            //warnf(WDEBUG, "woooaahh, we're halfway there...");
             sync = 1;
             break;
         case 0x62:
-            if (sync) {
-                //warn(WDEBUG, "WOOOAA-OH! Livin' on a prayer!");
-                return;
-            }
+            if (sync)
+                return 1;
             /* fall through */
         default:
             warnf(WWARN, "Unexpected sync byte 0x%02x", b);
@@ -113,103 +130,36 @@ ubx_get_sync (void)
     }
 }
 
-boolean 
-getGPSData (ubx_addr adr)
+ubx_pkt *
+ubx_read (ubx_addr adr)
 {
-    boolean EOM       = false;
-    byte tempChar;
+    ubx_pkt     *pkt    = (ubx_pkt *)ubx_buf;
+    uint16_t    len;
     
+    /* This should not be necessary now... */
+#if 0
     while(Wire.available())
         Wire.read();
+#endif
     
-    ubx_get_sync();
-    UBXstate = 2;
-    unsigned long timeoutTime = millis() + 3000;
-        
-    while (!EOM) {
-        if (millis() > timeoutTime) {
-            warn(WWARN, "getGPSData timed out.");
-            return false;
-        }
-            
-        tempChar = ubx_getb();
-        
-        switch(UBXstate) {
-        case 0:         // Awaiting Sync Char 1
-            if (tempChar == UBX_SYNC_CHAR1) // B5
-                UBXstate++;
-            break;
-        case 1:         // Awauting Sync Char 2
-            if (tempChar == UBX_SYNC_CHAR2) // 62
-                UBXstate++;
-            else
-                // Wrong sequence so start again
-                UBXstate = 0;
-            break;
-        case 2:         // Awaiting Class
-            UBXclass = tempChar;
-            UBXchecksum(UBXclass);
-            UBXstate++;
-            break;
-        case 3:         // Awaiting Id
-            UBXid = tempChar;
-            UBXchecksum(UBXid);
-            UBXstate++;
-            break;
-        case 4:         // Awaiting Length LSB 
-                        // (little endian so LSB is first)
-            UBXlengthLSB = tempChar;
-            UBXchecksum(UBXlengthLSB);
-            UBXstate++;       
-            break;
-        case 5:         // Awaiting Length MSB
-            UBXlengthMSB = tempChar;
-            UBXchecksum(UBXlengthMSB);
-            UBXstate++;
-            UBXpayloadIdx = 0;
-            // Convert little endian MSB & LSB into integer
-            UBXlength = (byte)(UBXlengthMSB << 8) | UBXlengthLSB;
-            if (UBXlength >= UBX_MAX_PAYLOAD) {
-                warn(WWARN, "UBX payload length too large (>100");
-                UBXstate    = 0; // Bad data received so reset and 
-                Checksum_A  = 0;
-                Checksum_B  = 0;
-                return false;
-            }
-            break;
-        case 6:
-            UBXbuffer[UBXpayloadIdx] = tempChar;
-            UBXchecksum(tempChar);
-            UBXpayloadIdx++;
-            if (UBXpayloadIdx == UBXlength)
-                // Just processed last byte of payload, so move on
-                UBXstate++; 
-            break;
-        case 7:         // Awaiting Checksum 1
-            UBXckA = tempChar;
-            UBXstate++;
-            break;
-        case 8:         // Awaiting Checksum 2
-            UBXckB = tempChar;
-            // Check the calculated checksums match actual checksums
-            if ((Checksum_A == UBXckA) && (Checksum_B == UBXckB)) {
-                // Checksum is good so parse the message
-                parseUBX();
-                EOM = true;
-            }
-            else {
-                warn(WERROR, "UBX PAYLOAD BAD CHECKSUM!!");
-                return false;
-            }
-            
-            UBXstate    = 0;    // Start again at 0
-            Checksum_A  = 0;
-            Checksum_B  = 0;
-            break;
-        }
+    if (!ubx_get_sync(adr))
+        return NULL;
+
+    ubx_get_buf(adr, ubx_buf, UBX_HEADSIZ);
+    len = pkt->len + 2;
+
+    if (len + UBX_HEADSIZ > sizeof(ubx_buf)) {
+        warnf(WWARN, "UBX packet of type [%04x] too long (%u)", 
+            pkt->type, len);
+        ubx_drop(adr, len);
+        return NULL;
     }
-    // We're at the end, which must mean everything's ok.
-    return true;
+
+    ubx_get_buf(adr, pkt->dat, len);
+    if (!ubx_check_sum(pkt))
+        return NULL;
+
+    return pkt;
 }
 
 // Send a byte array of UBX protocol to the GPS
