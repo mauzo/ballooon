@@ -58,16 +58,13 @@ ubx_avail(void)
     bytes_avail = (uint16_t)Wire.read() << 8;
     bytes_avail |= (uint16_t)Wire.read();
     
+    //warnf(WDEBUG, "ubx_avail returns %u", bytes_avail);
     return bytes_avail;
 }
 
 static byte
 ubx_getb (void)
 {
-    unsigned int b_av;
-    b_av = ubx_avail();
-    warnf(WDEBUG, "Bytes available: %u", b_av);
-
     if (!Wire.available())
         Wire.requestFrom(GPS_ADDR, BUFFER_LENGTH);
 
@@ -85,6 +82,9 @@ ubx_get_sync (void)
         if(Wire.available() || ubx_avail())
         {
             b = ubx_getb();
+        }
+        else
+        {
             delay(10);
             continue;
         }
@@ -96,11 +96,12 @@ ubx_get_sync (void)
             //delay(10);
             break;
         case 0xb5:
+            //warnf(WDEBUG, "woooaahh, we're halfway there...");
             sync = 1;
             break;
         case 0x62:
             if (sync) {
-                warn(WDEBUG, "Got sync");
+                //warn(WDEBUG, "WOOOAA-OH! Livin' on a prayer!");
                 return;
             }
             /* fall through */
@@ -115,12 +116,15 @@ ubx_get_sync (void)
 boolean 
 getGPSData (ubx_addr adr)
 {
-    unsigned long timeoutTime = millis() + 3000;
     boolean EOM       = false;
     byte tempChar;
     
+    while(Wire.available())
+        Wire.read();
+    
     ubx_get_sync();
     UBXstate = 2;
+    unsigned long timeoutTime = millis() + 3000;
         
     while (!EOM) {
         if (millis() > timeoutTime) {
