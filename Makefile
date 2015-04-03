@@ -17,7 +17,7 @@ libCore_SRCS=	main.c host.c Print.cpp Stream.cpp
 .endif
 
 PROG=		ballooon
-SRCS=		ballooon.ino gps.cpp ubx.cpp warn.cpp
+SRCS=		ballooon.ino camera.cpp gps.cpp ubx.cpp warn.cpp
 
 CFLAGS+=	-ffunction-sections -fdata-sections -Os -std=gnu99
 CFLAGS+=	-Wall -Wno-parentheses
