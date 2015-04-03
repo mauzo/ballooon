@@ -4,9 +4,10 @@
 #include <Wire.h>
 
 #include "gps.h"
+#include "camera.h"
 #include "task.h"
 
-task *all_tasks[] = { &gps_task, NULL };
+task *all_tasks[] = { &gps_task, &cam_task, NULL };
 
 void 
 setup (void)

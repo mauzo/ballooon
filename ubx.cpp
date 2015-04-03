@@ -112,7 +112,7 @@ ubx_get_sync (ubx_addr adr)
 
         switch (b) {
         case 0xff:
-            warn(WDEBUG, "Got 0xff looking for sync");
+            //warn(WDEBUG, "Got 0xff looking for sync");
             sync = 0;
             break;
         case 0xb5:
