@@ -3,10 +3,9 @@
 #ifndef __CAMERA_H
 #define __CAMERA_H
 
-#define POWERPIN	7
-#define FOCUSPIN	9
-#define SHUTTER		12
-#define TIMEGAP		3
+#define POWERPIN	4
+#define FOCUSPIN	5
+#define SHUTTER		6
 
 #include "task.h"
 
