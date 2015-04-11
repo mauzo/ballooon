@@ -3,8 +3,10 @@
 #ifndef __RADIO_H
 #define __RADIO_H
 
-#define RADIOPIN 9
-#define ENABLE 8
+#define RADIO_PIN   11
+#define ENABLE_PIN  8
+
+#define RTTY_BAUD   50
 
 #include "task.h"
 

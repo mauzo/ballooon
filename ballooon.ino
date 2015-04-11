@@ -5,9 +5,16 @@
 
 #include "gps.h"
 #include "camera.h"
+#include "radio.h"
 #include "task.h"
+#include "warn.h"
 
-task *all_tasks[] = { &gps_task, &cam_task, NULL };
+task *all_tasks[] = { 
+    &gps_task, 
+    &cam_task,
+    &radio_task, 
+    NULL
+};
 
 void 
 setup (void)
@@ -18,8 +25,10 @@ setup (void)
     Wire.begin(); //Start I2C link
 
     for (t = all_tasks; *t; t++)
-        if ((*t)->setup)
+        if ((*t)->setup) {
+	    warnf(WDEBUG, "Calling setup for %s", (*t)->name);
             (*t)->setup();
+    }
 }
 
 void 
