@@ -5,14 +5,14 @@
 
 #include "gps.h"
 #include "camera.h"
-#include "radio.h"
+#include "rtty.h"
 #include "task.h"
 #include "warn.h"
 
 task *all_tasks[] = { 
     &gps_task, 
     &cam_task,
-    &radio_task, 
+    &rtty_task, 
     NULL
 };
 
