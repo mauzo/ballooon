@@ -9,8 +9,18 @@
 #include "rtty.h"
 #include "warn.h"
 
+#define PIN_RADIO   3
+#define PIN_ENABLE  8
+#define PWM_HIGH    110
+#define PWM_LOW     100
+
+#define RTTY_BAUD   50
+
 static void     rtty_setup          (void);
+static void     setup_baudrate      (void);
+static void     setup_radio         (void);
 static void     rtty_run            (unsigned long now);
+
 static void     rtty_txstring       (char * string);
 static void     rtty_txbyte         (char c);
 static void     rtty_txbit          (int bit);
@@ -28,12 +38,10 @@ task rtty_task = {
     .reset      = 0,
 };
 
+/* Should be called with interrupts disabled */
 static void
-rtty_setup (void) 
+setup_baudrate (void)
 {
-    warn(WLOG, "RTTY setup");
-    cli();          // disable global interrupts whilst we set stuff up
-    
     TCCR1A = 0;     // set entire TCCR1A register to 0
     TCCR1B = 0;     // same for TCCR1B
     
@@ -47,21 +55,34 @@ rtty_setup (void)
     
     // enable timer compare interrupt:
     TIMSK1 |= (1 << OCIE1A);
-    
-    pinMode(RADIOPIN,OUTPUT);
-    pinMode(ENABLE,OUTPUT);
+}
+
+static void
+setup_radio (void)
+{
+    pinMode(PIN_RADIO, OUTPUT);
+    pinMode(PIN_ENABLE, OUTPUT);
     
     // Enable NTX2B (due to FA firmware)
-    digitalWrite(ENABLE,HIGH);
+    digitalWrite(PIN_ENABLE, HIGH);
     delay(100);
-    digitalWrite(ENABLE,LOW);
+    digitalWrite(PIN_ENABLE, LOW);
     delay(100);
-    digitalWrite(ENABLE,HIGH);
+    digitalWrite(PIN_ENABLE, HIGH);
 
     // Set PWM freq on timer 2
     TCCR2B = TCCR2B & 0b11111000 | 0b00000001;
+}
 
-    sei();          // enable global interrupts
+static void
+rtty_setup (void) 
+{
+    warn(WLOG, "RTTY setup");
+
+    cli();
+    setup_baudrate();
+    setup_radio();
+    sei();
 
     rtty_task.when = TASK_START;
 }
@@ -123,10 +144,7 @@ rtty_txbit (int bit)
 
 ISR(TIMER1_COMPA_vect)
 {
-    if (next_bit)
-        analogWrite(RADIOPIN,110);// high
-    else
-        analogWrite(RADIOPIN,100);//low
+    analogWrite(PIN_RADIO, next_bit ? PWM_HIGH : PWM_LOW);
 }
 
  
