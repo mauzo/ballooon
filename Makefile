@@ -1,14 +1,14 @@
 # This is a BSD makefile. 
 # It requires BSD make (bmake), not GNU make (gmake).
 
-CC=	gcc48
-CXX=	g++48
-
+.sinclude "config.mk"
 .include "mk/avr.mk"
 
-ARDUINO_DIR=	/usr/local/arduino
-
 USE_ARDUINO=	Wire Core
+
+AVRDUDE_MCU= 	m328p
+AVRDUDE_PROG=	arduino
+TTY_SPEED=	9600
 
 .if ${TARGET} != avr
 .PATH:		${.CURDIR}/host

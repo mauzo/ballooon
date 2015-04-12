@@ -5,6 +5,9 @@ OBJS?=		${SRCS:R:S/$/.o/g}
 CLEANFILES+=	${PROG} ${OBJS}
 OBJDIRS+=	${SRCS:H:u}
 
+AVRDUDE?=	avrdude
+CU?=		cu
+
 .if !empty(LD) && ${LD} == ld
 .  undef LD
 .endif
@@ -15,13 +18,15 @@ LD?=	${CXX}
 LD?=	${CC}
 .endif
 
-.if ${TARGET} == avr
-CLEANFILES+=	${PROG}.hex ${PROG}.eep
+.PHONY:	upload tty
 
-all:	${PROG}.hex ${PROG}.eep
-.else
 all:	${PROG}
-.endif
+
+upload:	${PROG}
+	${AVRDUDE} -p${AVRDUDE_MCU} -c${AVRDUDE_PROG} -P${AVRDUDE_TTY} -U ${PROG}
+
+tty:	upload
+	${CU} -l${AVRDUDE_TTY} -s${TTY_SPEED}
 
 .include "avr.obj.mk"
 .include "avr.dep.mk"
@@ -29,15 +34,5 @@ all:	${PROG}
 
 ${PROG}: ${OBJS}
 	${LD} ${LDFLAGS} -o ${.TARGET} ${.ALLSRC} ${LIBS}
-
-${PROG}.hex: ${PROG}
-	${OBJCOPY} -O ihex -R .eeprom ${PROG} ${.TARGET}
-
-${PROG}.eep: ${PROG}
-	${OBJCOPY} -O ihex -j .eeprom \
-		--set-section-flags=.eeprom=alloc,load \
-		--no-change-warnings \
-		--change-section-lma .eeprom=0 \
-		${PROG} ${.TARGET}
 
 .endif
