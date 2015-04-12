@@ -18,6 +18,9 @@ libCore_SRCS?=	wiring.c wiring_digital.c wiring_analog.c wiring_pulse.c \
 libCore_DIRS?=	${ARDUINO_DIR}/hardware/arduino/cores/arduino \
 		${ARDUINO_DIR}/hardware/arduino/variants/standard
 
+libSD_SRCS?=	SD.cpp File.cpp \
+		Sd2Card.cpp SdFile.cpp SdVolume.cpp
+
 libWire_SRCS?=	Wire.cpp twi.c
 
 .for u in ${USE_ARDUINO}
