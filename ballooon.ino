@@ -6,13 +6,15 @@
 #include "gps.h"
 #include "camera.h"
 #include "rtty.h"
+#include "sd.h"
 #include "task.h"
 #include "warn.h"
 
 task *all_tasks[] = { 
-    &gps_task, 
-    &cam_task,
-    &rtty_task, 
+    //&gps_task, 
+    //&cam_task,
+    //&rtty_task, 
+    &sd_task,
     NULL
 };
 
