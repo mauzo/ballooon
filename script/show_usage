@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+
+use 5.012;
+use warnings;
+
+my ($af, $ar, $ae) = @ARGV;
+
+my %s;
+
+while (<STDIN>) {
+    /\.([a-z_]+)[ ]+([0-9a-f]+)/ and $s{$1} = hex $2;
+}
+
+my $f = $s{text} + $s{data};
+my $r = $s{data} + $s{bss};
+my $e = $s{eeprom} // 0;
+
+printf "Usage: flash %uB (%.1f%%); sram %uB (%.1f%%); eeprom %uB (%.1f%%)\n",
+    $f, ($f * 100) / $af, 
+    $r, ($r * 100) / $ar, 
+    $e, ($e * 100) / $ae;
