@@ -7,6 +7,8 @@ OBJDIRS+=	${SRCS:H:u}
 
 AVRDUDE?=	avrdude
 CU?=		cu
+PERL?=		perl
+OBJDUMP?=	objdump
 
 .if !empty(LD) && ${LD} == ld
 .  undef LD
@@ -18,15 +20,29 @@ LD?=	${CXX}
 LD?=	${CC}
 .endif
 
-.PHONY:	upload tty
+.if ${TARGET} == avr
 
-all:	${PROG}
+.PHONY:	.all.usage upload tty
 
-upload:	${PROG}
-	${AVRDUDE} -p${AVRDUDE_MCU} -c${AVRDUDE_PROG} -P${AVRDUDE_TTY} -U ${PROG}
+all:	.all.usage
+
+.all.usage: ${PROG}
+	${OBJDUMP} -h ${.ALLSRC} | \
+	${PERL} ${.CURDIR}/script/show_usage \
+		${AVAIL_FLASH} ${AVAIL_SRAM} ${AVAIL_EEPROM}
+
+upload:	all
+	${AVRDUDE} -p${AVRDUDE_MCU} -c${AVRDUDE_PROG} -P${AVRDUDE_TTY} \
+		-U ${PROG}
 
 tty:	upload
 	${CU} -l${AVRDUDE_TTY} -s${TTY_SPEED}
+
+.else
+
+all:	${PROG}
+
+.endif
 
 .include "avr.obj.mk"
 .include "avr.dep.mk"
