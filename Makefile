@@ -25,7 +25,7 @@ CFLAGS+=	-I${.CURDIR}
 
 CXXFLAGS=	${CFLAGS:N-std=*} -fno-exceptions
 LDFLAGS+=	-Os -Wl,--gc-sections
-LIBS+=		-lm
+LIBS+=		-lm -lprintf_flt
 
 .include "avr.prog.mk"
 .include "avr.arduino.mk"
