@@ -12,12 +12,8 @@
 #include "warn.h"
 
 static void     rtty_setup          (void);
-static void     setup_baudrate      (void);
-static void     setup_radio         (void);
 static void     rtty_run            (unsigned long now);
 
-static void     rtty_txstring       (char * string);
-static void     rtty_txbyte         (char c);
 static uint16_t gps_CRC16_checksum  (char *string);
 
 static char             datastring[120];
@@ -44,52 +40,18 @@ rtty_setup (void)
 static void 
 rtty_run (unsigned long now) 
 {
-    snprintf(datastring,120,"$$HABLEEBLEE,000138,14:00:50,+51.482580670,-003.163666160,000004,+20,-20,05,0196"); // Example datastring
-    unsigned int CHECKSUM = gps_CRC16_checksum(datastring); // Calculates the checksum for this datastring
-    char checksum_str[6];
-    sprintf(checksum_str, "*%04X\n", CHECKSUM);
+    unsigned int    checksum;
+    char            checksum_str[6];
+
+    snprintf(datastring,120,"$$HABLEEBLEE");
+    checksum = gps_CRC16_checksum(datastring);
+    sprintf(checksum_str, "*%04X\n", checksum);
     strcat(datastring,checksum_str);
     warnf(WLOG, "RTTY tx [%s]", datastring);
-    rtty_txstring (datastring);
-}
- 
-static void 
-rtty_txstring (char *string)
-{ 
-    char c;
-    
-    c = *string++;
-    
-    while (c != '\0') {
-        rtty_txbyte(c);
-        c = *string++;
-    }
-}
+    ntx_send((byte*)datastring, strlen(datastring));
 
-static void 
-rtty_txbyte (char c)
-{
-    int i;
- 
-    ntx_txbit (0); // Start bit
- 
-    // Send bits for for char LSB first
- 
-    for (i=0;i<7;i++) { // Change this here 7 or 8 for ASCII-7 / ASCII-8
-        if (c & 1)
-            ntx_txbit(1);
-        else
-            ntx_txbit(0);
-        c = c >> 1;
-
-        delayMicroseconds(10000); // For 50 Baud uncomment this and the line below.
-        delayMicroseconds(10150); // You can't do 20150 it just doesn't work as the
-    }
-    ntx_txbit (1); // Stop bit
-    ntx_txbit (1); // Stop bit
+    rtty_task.when = now + 20000;
 }
-
- 
  
 static uint16_t 
 gps_CRC16_checksum (char *string)
