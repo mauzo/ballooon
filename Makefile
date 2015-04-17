@@ -53,7 +53,7 @@ CFLAGS+=	-Wall -Wno-parentheses
 CFLAGS+=	-I${.CURDIR}
 
 CXXFLAGS=	${CFLAGS:N-std=*} -fno-exceptions
-LDFLAGS+=	-Os -Wl,--gc-sections
+LDFLAGS+=	-Os -Wl,--gc-sections -T${.CURDIR}/script/ldscript
 
 # Host-build compat
 
