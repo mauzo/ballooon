@@ -1,6 +1,7 @@
 /* vi:set syn=cpp: */
 
 #include <Arduino.h>
+#include <SdFat.h>
 #include <Wire.h>
 
 #include "gps.h"

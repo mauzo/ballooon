@@ -37,7 +37,7 @@ sd_setup (void)
     sd_vol = new SdFat;
     warn(WDEBUG, "Created SdFat object");
 
-    if (!sd_vol->begin(SPI_SS, SPI_HALF_SPEED))
+    if (!sd_vol->begin(SPI_SS))
         warn(WPANIC, "SD card failed to initialise");
     warn(WDEBUG, "Initialised SD library");
 
