@@ -22,7 +22,7 @@ LD?=	${CC}
 
 .if ${TARGET} == avr
 
-.PHONY:	.all.usage upload tty
+.PHONY:	.all.usage upload tty test
 
 all:	.all.usage
 
@@ -35,8 +35,10 @@ upload:	all
 	${AVRDUDE} -p${AVRDUDE_MCU} -c${AVRDUDE_PROG} -P${AVRDUDE_TTY} \
 		-U ${PROG}
 
-tty:	upload
+tty:
 	${CU} -l${AVRDUDE_TTY} -s${TTY_SPEED}
+
+test:	upload tty
 
 .else
 

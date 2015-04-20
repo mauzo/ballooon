@@ -31,7 +31,8 @@
 # What to build
 
 PROG=		ballooon
-SRCS=		ballooon.ino camera.cpp gps.cpp rtty.cpp ubx.cpp warn.cpp
+SRCS=		ballooon.ino camera.cpp gps.cpp ntx.cpp rtty.cpp ubx.cpp \
+		warn.cpp
 
 USE_ARDUINO=	Wire Core
 LIBS+=		-lm -lprintf_flt
