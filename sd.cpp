@@ -30,7 +30,8 @@ static void
 sd_setup (void)
 {
     File    f;
-    byte    buf[] = "Hello world!\n";
+    byte    buf[] = "Callsign,Time,Lat,Lon,Alt,Hrz Vel,Bearing,Vrt Vel,No Sats,Fix Type,HDOP,Int Temp,Ext Temp,Batt V\n";
+    warnf(WDEBUG, "%i", sizeof(buf));
     int     rv;
 
     warn(WLOG, "Initialising SD card");
@@ -61,6 +62,7 @@ static void
 sd_run (unsigned long now)
 {
     warn(WLOG, "sd_run");
-    sd_task.when = TASK_INACTIVE;
+    
+    sd_task.when = millis()+3000;
 }
 

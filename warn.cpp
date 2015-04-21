@@ -54,11 +54,12 @@ warn_stamp (byte level)
 }
 
 void
-warn (byte level, const char *msg)
+warn (byte level, String msg)
 {
-    warn_stamp(level);
-    warnx(level, msg);
-    warn_nl(level);
+    //warn_stamp(level);
+    //warnx(level, msg);
+    //warn_nl(level);
+    Serial.print(msg);
 }
 
 void
