@@ -6,13 +6,17 @@
 #include "atomic.h"
 #include "gps.h"
 #include "camera.h"
+#include "ntx.h"
 #include "rtty.h"
 #include "task.h"
 #include "warn.h"
 
 task *all_tasks[] = { 
-    &gps_task, 
+    &gps_task,
     &cam_task,
+#ifdef NTX_DEBUG
+    &ntx_task,
+#endif
     &rtty_task, 
     NULL
 };
