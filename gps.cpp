@@ -37,20 +37,20 @@ static boolean          gpsLock         = false;
 static unsigned long    gpsCheckTime;
 
 static byte     gps_parse_pvt   (ubx_nav_pvt *pkt);
-static void     gps_setup       (void);
-static void     gps_run         (unsigned long now);
+static wchan    gps_setup       (void);
+static wchan    gps_run         (wchan now);
 
 task gps_task = {
     .name   = "GPS",
-    .when   = 0,
+    .when   = TASK_STOP,
 
     .setup  = gps_setup,
     .run    = gps_run,
     .reset  = 0,
 };
 
-static void
-gps_run (unsigned long now)
+static wchan
+gps_run (wchan now)
 {
     ubx_nav_pvt *pkt;
 
@@ -62,33 +62,41 @@ gps_run (unsigned long now)
     if (pkt && gps_parse_pvt(pkt)) {
         checkForLock();
         printGPSData();
-        gps_task.when = now + 10000;
+        return TASK_TIME(now, 10000);
     }
-    else {
-        gps_task.when = now + 3000;
-    }
+
+    return TASK_TIME(now, 3000);
 }
 
-static void
+static wchan
 gps_setup (void)
 {
     warn(WNOTICE, "Setting IO protocols.");
-    if(!sendUBX(GPS_ADDR, setIOtoUBX, sizeof(setIOtoUBX)))
+    if(!sendUBX(GPS_ADDR, setIOtoUBX, sizeof(setIOtoUBX))) {
         warn(WERROR, "Error sending CFG-PRT.");
+        return TASK_STOP;
+    }
     
     warn(WDEBUG, "Awaiting confirmation.");
-    if(!getUBX_ACK(GPS_ADDR, setIOtoUBX))
+    if(!getUBX_ACK(GPS_ADDR, setIOtoUBX)) {
         warn(WERROR, "Error: no confirmation received for CFG-PRT.");
+        return TASK_STOP;
+    }
     
     warn(WNOTICE, "Setting flight mode (1g).");
-    if(!sendUBX(GPS_ADDR, airborne1g, sizeof(airborne1g)))
+    if(!sendUBX(GPS_ADDR, airborne1g, sizeof(airborne1g))) {
         warn(WERROR, "Error sending CFG-NAV.");
+        return TASK_STOP;
+    }
     
     warn(WNOTICE, "Awaiting confirmation.");
-    if(!getUBX_ACK(GPS_ADDR, airborne1g))
+    if(!getUBX_ACK(GPS_ADDR, airborne1g)) {
         warn(WERROR, "Error: no confirmation received for CFG-NAV.");
+        return TASK_STOP;
+    }
 
     gpsCheckTime = millis();
+    return TASK_RUN;
 }
 
 void 

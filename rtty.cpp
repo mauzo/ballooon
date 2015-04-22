@@ -17,10 +17,10 @@
 
 #define RTTY_BAUD   50
 
-static void     rtty_setup          (void);
+static wchan    rtty_setup          (void);
 static void     setup_baudrate      (void);
 static void     setup_radio         (void);
-static void     rtty_run            (unsigned long now);
+static wchan    rtty_run            (wchan now);
 
 static void     rtty_txstring       (char * string);
 static void     rtty_txbyte         (char c);
@@ -32,7 +32,7 @@ static volatile byte    next_bit = 0;
 
 task rtty_task = {
     .name       = "rtty",
-    .when       = TASK_INACTIVE,
+    .when       = TASK_STOP,
 
     .setup      = rtty_setup,
     .run        = rtty_run,
@@ -75,7 +75,7 @@ setup_radio (void)
     TCCR2B = TCCR2B & 0b11111000 | 0b00000001;
 }
 
-static void
+static wchan
 rtty_setup (void) 
 {
     warn(WLOG, "RTTY setup");
@@ -85,11 +85,11 @@ rtty_setup (void)
     setup_radio();
     sei();
 
-    rtty_task.when = TASK_START;
+    return TASK_RUN;
 }
  
-static void 
-rtty_run (unsigned long now) 
+static wchan 
+rtty_run (wchan now) 
 {
     snprintf(datastring,120,"$$HABLEEBLEE,000138,14:00:50,+51.482580670,-003.163666160,000004,+20,-20,05,0196"); // Example datastring
     unsigned int CHECKSUM = gps_CRC16_checksum(datastring); // Calculates the checksum for this datastring
@@ -98,6 +98,8 @@ rtty_run (unsigned long now)
     strcat(datastring,checksum_str);
     warnf(WLOG, "RTTY tx [%s]", datastring);
     rtty_txstring (datastring);
+
+    return TASK_STOP;
 }
  
 static void 

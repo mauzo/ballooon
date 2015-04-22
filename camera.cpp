@@ -6,13 +6,13 @@
 #include "task.h"
 #include "warn.h"
 
-static void   cam_setup	(void);
-static void   cam_shoot	(unsigned long now);
+static wchan  cam_setup	(void);
+static wchan  cam_shoot	(wchan now);
 static void   cam_power	(void);
 
 task cam_task = {
     .name   = "camera",
-    .when   = 0,
+    .when   = TASK_STOP,
 
     .setup  = cam_setup,
     .run    = cam_shoot,
@@ -28,7 +28,7 @@ task cam_task = {
 static byte cam_state   = CAM_START;
 static byte cam_shot = 1;
 
-static void 
+static wchan 
 cam_setup (void)
 {
     pinMode(POWERPIN,OUTPUT);
@@ -37,10 +37,12 @@ cam_setup (void)
     digitalWrite(FOCUSPIN,LOW);
     pinMode(SHUTTER,OUTPUT);
     digitalWrite(SHUTTER,LOW);
+
+    return TASK_RUN;
 }
 
-static void 
-cam_shoot (unsigned long now)
+static wchan 
+cam_shoot (wchan now)
 {
     /* Don't use the time passed in, get our own time, because we want a
      * fixed-length delay from changing the pin state, not a 'called
@@ -50,31 +52,29 @@ cam_shoot (unsigned long now)
     switch (cam_state++) {
     case CAM_START:
         cam_power();
-        cam_task.when = millis() + 3000; //3 secs to allow lens to extend and power on
-        break;
+        return TASK_DELAY(3000); //3 secs to allow lens to extend and power on
     case CAM_FOCUS:
         digitalWrite(FOCUSPIN,HIGH);
-        cam_task.when = millis() + 2000; //2 secs to allow focus
-        break;
+        return TASK_DELAY(2000); //2 secs to allow focus
     case CAM_SHUTTER:
         digitalWrite(SHUTTER,HIGH);
-        cam_task.when = millis() + 200; //Brief hold of button XXX how long?
-        break;
+        return TASK_DELAY(200); //Brief hold of button XXX how long?
     case CAM_STORE:
         digitalWrite(SHUTTER,LOW);
         digitalWrite(FOCUSPIN,LOW);
         if(cam_shot<5)
-            cam_state -= 3; //Go back to CAM_FOCUS to take the next pic
-        cam_task.when = millis() + 3000; //3 secs to store image on card
-        break;
+            cam_state   = CAM_FOCUS;
+        return TASK_DELAY(3000); //3 secs to store image on card
     case CAM_FINISH:
         cam_shot=1;
         cam_power();
         cam_state       = CAM_START;
         /* XXX ~5 mins until next shots? */
-        cam_task.when   = millis() + 300000;
-        break;
+        return TASK_DELAY(300000);
     }
+
+    warn(WERROR, "Camera task: bad state");
+    return TASK_STOP;
 }
 
 static void 

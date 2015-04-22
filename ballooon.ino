@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#include "atomic.h"
 #include "gps.h"
 #include "camera.h"
 #include "rtty.h"
@@ -16,6 +17,8 @@ task *all_tasks[] = {
     NULL
 };
 
+static volatile byte    swi_active      = 0;
+
 void 
 setup (void)
 {
@@ -27,20 +30,52 @@ setup (void)
     for (t = all_tasks; *t; t++)
         if ((*t)->setup) {
 	    warnf(WDEBUG, "Calling setup for %s", (*t)->name);
-            (*t)->setup();
+            (*t)->when = (*t)->setup();
     }
 }
 
 void 
 loop (void)
 {
-    task            **t;
-    unsigned long   now;
+    task    **t;
+    long    now;
+    byte    swi;
+    wchan   w;
+    wchan   (*r)(wchan);
 
-    now = millis();
+    CRIT_START {
+        now         = millis();
+        swi         = swi_active;
+        swi_active  = 0;
+    } CRIT_END;
 
-    for (t = all_tasks; *t; t++)
-        if ((*t)->run && now > (*t)->when)
-            (*t)->run(now);
+    for (t = all_tasks; *t; t++) {
+        r = (*t)->run;
+        if (!r) continue;
+
+        w = (*t)->when;
+        if (w.type == TASK_TYP_STOP) continue;
+
+        if (w.time >= 0 && now > w.time) {
+            (*t)->when = r(((wchan){ .time = now }));
+            continue;
+        }
+        switch (w.type) {
+        case TASK_TYP_IRQ:
+            /* XXX */
+            continue;
+        case TASK_TYP_SWI:
+            if (swi & (1 << w.value))
+                (*t)->when = r(w);
+            continue;
+        }
+    }
 }
 
+void
+swi (byte i)
+{
+    CRIT_START {
+        swi_active |= (1 << i);
+    } CRIT_END;
+}
