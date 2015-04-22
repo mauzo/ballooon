@@ -173,7 +173,7 @@ sendUBX (ubx_addr adr, byte *msg, byte len)
     Wire.beginTransmission(adr);
 
     /* print a stamp for the debugging output */
-    warn_stamp(WDUMP);
+    warn_flags(WARN_STMP, WDUMP, "");
 
     //Write one byte at a time
     for(i=0; i<len; i++) {
@@ -188,13 +188,13 @@ sendUBX (ubx_addr adr, byte *msg, byte len)
             Wire.beginTransmission(adr);
         }
 
-        warnxf(WDUMP, " %02x", msg[i]);
+        warn_flags(WARN_FMT|WARN_PGM, WDUMP, sF(" %02x"), msg[i]);
         if(Wire.write(msg[i]) != 1) {
             warn(WERROR, "Error in Wire.write.");
             return result;
         }
     }
-    warn_nl(WDUMP);
+    warn_flags(WARN_NL, WDUMP, "");
 
     if(Wire.endTransmission() != 0) {
         warn(WERROR, "Error in Wire.endTransmission.");
@@ -236,7 +236,7 @@ getUBX_ACK (ubx_addr adr, byte *msg)
     }
     
     /* timestamp the hex dump */
-    warn_stamp(WDUMP);
+    warn_flags(WARN_STMP, WDUMP, "");
 
     while (1) {
         // Timeout if no valid response in 3 seconds
@@ -258,12 +258,12 @@ getUBX_ACK (ubx_addr adr, byte *msg)
                 // ACK packet
                 if (readByte == ackPacket[ackByteID]) { 
                     ackByteID++;
-                    warnxf(WDUMP, " %02x", readByte);
+                    warn_flags(WARN_FMT|WARN_PGM, WDUMP, sF(" %02x"), readByte);
                     
                     // Test for success
                     if (ackByteID > 9) {
                         // All packets in order!
-                        warn_nl(WDUMP);
+                        warn_flags(WARN_NL, WDUMP, "");
                         warn(WDEBUG, "Successfully read UBX ACK");
                         return true;
                     }
