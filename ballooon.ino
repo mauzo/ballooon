@@ -11,7 +11,7 @@
 #include "warn.h"
 
 task *all_tasks[] = { 
-    /*&gps_task,*/
+    &gps_task,
     &cam_task,
     &ntx_task,
     &rtty_task, 
