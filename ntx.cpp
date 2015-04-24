@@ -39,6 +39,7 @@ static volatile byte    ntx_ix      = 0;
 static volatile byte    ntx_state   = STATE_NONE;
 static byte             ntx_bit     = 0;
 
+#ifdef NTX_DEBUG
 /* Each byte of this array records one bit which has been sent. The byte
  * is in the format 000boonn, where b is the bit that was sent, oo is
  * the old state, and nn is the new state.
@@ -48,11 +49,14 @@ static volatile byte    ntx_nsent   = 0;
 static volatile byte    ntx_isrs    = 0;
 
 static void     ntx_run             (unsigned long now);
+#endif
+
 static void     setup_radio         (void);
 static void     setup_timer         (void);
 static void     timer_disable       (void);
 static void     timer_enable        (void);
 
+#ifdef NTX_DEBUG
 task ntx_task = {
     .name       = "NTX",
     .when       = TASK_START,
@@ -61,6 +65,7 @@ task ntx_task = {
     .run        = ntx_run,
     .reset      = 0,
 };
+#endif
 
 void
 ntx_setup (void)
@@ -125,6 +130,7 @@ setup_radio (void)
     TCCR2B = TCCR2B & PSC_MASK | PSC_FULL;
 }
 
+#ifdef NTX_DEBUG
 void
 ntx_run (unsigned long now)
 {
@@ -151,6 +157,7 @@ ntx_run (unsigned long now)
 
     ntx_task.when = now + 1000;
 }
+#endif
 
 byte
 ntx_send (byte *buf, byte len)
@@ -175,9 +182,10 @@ ISR(TIMER1_COMPA_vect)
 {
     byte    b;
 
+#ifdef NTX_DEBUG
     ntx_isrs++;
-
     ntx_sent[ntx_nsent] = ntx_state << 2;
+#endif
 
     /* XXX parity? */
     switch (ntx_state) {
@@ -212,8 +220,10 @@ ISR(TIMER1_COMPA_vect)
         return;
     }
 
-    b = !!b;
     analogWrite(PIN_RADIO, b ? PWM_HIGH : PWM_LOW);
+#ifdef NTX_DEBUG
+    b = !!b;
     ntx_sent[ntx_nsent++] |= (b << 4) | ntx_state;
+#endif
 }
 
