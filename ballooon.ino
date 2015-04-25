@@ -47,13 +47,13 @@ loop (void)
 {
     task    **t;
     long    now;
-    byte    swi;
+    byte    swis;
     wchan   w;
     wchan   (*r)(wchan);
 
     CRIT_START {
         now         = millis();
-        swi         = swi_active;
+        swis        = swi_active;
         swi_active  = 0;
     } CRIT_END;
 
@@ -62,20 +62,28 @@ loop (void)
         if (!r) continue;
 
         w = (*t)->when;
-        if (w.type == TASK_TYP_STOP) continue;
-
-        if (w.time >= 0 && now > w.time) {
-            (*t)->when = r(((wchan){ .time = now }));
-            continue;
-        }
-        switch (w.type) {
+        switch (WCHAN_TYPE(w)) {
+        case TASK_TYP_STOP:
+            break;
+        case TASK_TYP_TIME:
+            if (now > w) {
+                warnf(WDEBUG, "Calling [%s] at time [%li]",
+                    (*t)->name, now);
+                (*t)->when = r(now);
+            }
+            break;
         case TASK_TYP_IRQ:
             /* XXX */
-            continue;
+            break;
         case TASK_TYP_SWI:
-            if (swi & (1 << w.value))
+            if (swis & (1 << WCHAN_VALUE(w))) {
+                warnf(WDEBUG, "Calling [%s] for swi [%u]",
+                    (*t)->name, WCHAN_VALUE(w));
                 (*t)->when = r(w);
-            continue;
+            }
+            break;
+        default:
+            warn(WERROR, "Unknown wchan");
         }
     }
 }

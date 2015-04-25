@@ -8,30 +8,32 @@
 /* A wchan (wait channel) is something a task is waiting for, before it
  * can be run again. It is either a time (in millis), or something else.
  *
- *  RUN     time == 0       Task is runnable now.
- *  TIME    time > 0        Task is runnable at .time.
+ *  RUN     0               Task is runnable now.
+ *  TIME    type == 0       Task is runnable at the given time.
  *  IRQ     type == 0x8000  Reserved for hardware IRQs.
  *  SWI     type == 0x8001  Task is waiting for a call to swi().
- *  STOP    time == -1      Task is stopped.
+ *  STOP    -1              Task is stopped.
  */
 
-typedef union {
-    int32_t         time;
-    struct {
-        uint16_t    type;
-        uint16_t    value;
-    };
-} wchan;
+/* XXX This ought to be a union, but g++ won't play, so just use bitops
+ * instead. */
+typedef int32_t wchan;
 
-#define TASK_RUN        ((wchan){ .time = 0L })
-#define TASK_TIME(n, x) ((wchan){ .time = (n).time + (x) })
-#define TASK_DELAY(x)   ((wchan){ .time = (long)millis() + (x) })
+#define WCHAN_TYPE(w)   ((w) & 0x80000000 ? ((w) >> 16) & 0xffff : 0x0000)
+#define WCHAN_VALUE(w)  (w & 0xffff)
+
+#define __TASK_TYP(t, v) (((int32_t)t) << 16 | (v))
+
+#define TASK_TYP_TIME   0x0000
+#define TASK_RUN        (0L)
+#define TASK_TIME(n, x) ((n) + (x))
+#define TASK_DELAY(x)   ((int32_t)millis() + (x))
 #define TASK_TYP_IRQ    0x8000
-#define TASK_IRQ(x)     ((wchan){ .type = TASK_TYP_IRQ, .value = (x) })
+#define TASK_IRQ(x)     __TASK_TYP(TASK_TYP_IRQ, (x))
 #define TASK_TYP_SWI    0x8001
-#define TASK_SWI(x)     ((wchan){ .type = TASK_TYP_SWI, .value = (x) })
+#define TASK_SWI(x)     __TASK_TYP(TASK_TYP_SWI, (x))
 #define TASK_TYP_STOP   0xffff
-#define TASK_STOP       ((wchan){ .time = -1L })
+#define TASK_STOP       (-1L)
 
 typedef struct task {
     const char  *name;
@@ -39,7 +41,7 @@ typedef struct task {
 
     wchan       (*setup)    (void);
     wchan       (*run)      (wchan why);
-    void        (*reset)    (void);
+    wchan       (*reset)    (void);
 } task;
 
 extern task *all_tasks[];
