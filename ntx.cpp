@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 
+#include "atomic.h"
 #include "ntx.h"
 #include "warn.h"
 
@@ -70,10 +71,10 @@ task ntx_task = {
 void
 ntx_setup (void)
 {
-    cli();
-    setup_radio();
-    setup_timer();
-    sei();
+    CRIT_START {
+        setup_radio();
+        setup_timer();
+    } CRIT_END;
 }
 
 /* Set up timer 1 (the 16-bit timer) to tick at the baud rate.
@@ -101,15 +102,19 @@ setup_timer (void)
 static void
 timer_enable (void)
 {
-    /* enable timer interrupt */
-    TIMSK1 |= (1 << OCIE1A);
+    CRIT_START {
+        /* enable timer interrupt */
+        TIMSK1 |= (1 << OCIE1A);
+    } CRIT_END;
 }
 
 static void
 timer_disable (void)
 {
-    /* disable timer interrupt */
-    TIMSK1 &= ~(1 << OCIE1A);
+    CRIT_START {
+        /* disable timer interrupt */
+        TIMSK1 &= ~(1 << OCIE1A);
+    } CRIT_END;
 }
 
 /* Should be called with interrupts disabled */
