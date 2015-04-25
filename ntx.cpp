@@ -48,7 +48,7 @@ static volatile byte    ntx_sent[NTX_BUFSIZ];
 static volatile byte    ntx_nsent   = 0;
 static volatile byte    ntx_isrs    = 0;
 
-static void     ntx_run             (unsigned long now);
+static wchan    ntx_run             (wchan now);
 #endif
 
 static void     setup_radio         (void);
@@ -59,7 +59,7 @@ static void     timer_enable        (void);
 #ifdef NTX_DEBUG
 task ntx_task = {
     .name       = "NTX",
-    .when       = TASK_START,
+    .when       = TASK_STOP,
 
     .setup      = 0,
     .run        = ntx_run,
@@ -131,8 +131,8 @@ setup_radio (void)
 }
 
 #ifdef NTX_DEBUG
-void
-ntx_run (unsigned long now)
+wchan
+ntx_run (wchan now)
 {
     static char     states[][6] = { "none", "start", "data", "stop" };
     byte            i;
@@ -155,7 +155,7 @@ ntx_run (unsigned long now)
         timer_enable();
     }
 
-    ntx_task.when = now + 1000;
+    return TASK_TIME(now, 2000);
 }
 #endif
 

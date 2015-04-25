@@ -31,10 +31,14 @@ setup (void)
     Serial.begin(9600); // Start debug output
     Wire.begin(); //Start I2C link
 
-    for (t = all_tasks; *t; t++)
+    for (t = all_tasks; *t; t++) {
         if ((*t)->setup) {
 	    warnf(WDEBUG, "Calling setup for %s", (*t)->name);
             (*t)->when = (*t)->setup();
+        }
+        else {
+            (*t)->when = TASK_RUN;
+        }
     }
 }
 
