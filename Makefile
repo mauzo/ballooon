@@ -53,6 +53,10 @@ CFLAGS+=	-ffunction-sections -fdata-sections -Os -std=gnu99
 CFLAGS+=	-Wall -Wno-parentheses
 CFLAGS+=	-I${.CURDIR}
 
+.ifdef NTX_DEBUG
+CFLAGS+=	-DNTX_DEBUG
+.endif
+
 CXXFLAGS=	${CFLAGS:N-std=*} -fno-exceptions
 LDFLAGS+=	-Os -Wl,--gc-sections
 
