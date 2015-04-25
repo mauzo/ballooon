@@ -25,9 +25,6 @@ task cam_task = {
 #define CAM_STORE   3
 #define CAM_FINISH  4
 
-static byte cam_state   = CAM_START;
-static byte cam_shot = 1;
-
 static wchan 
 cam_setup (void)
 {
@@ -44,6 +41,9 @@ cam_setup (void)
 static wchan 
 cam_shoot (wchan now)
 {
+    static byte cam_state   = CAM_START;
+    static byte cam_shot = 1;
+
     /* Don't use the time passed in, get our own time, because we want a
      * fixed-length delay from changing the pin state, not a 'called
      * once every N seconds' delay. The timing will not be very precise;
@@ -51,23 +51,28 @@ cam_shoot (wchan now)
      * the delay we need, and busy-wait the last bit here. */
     switch (cam_state++) {
     case CAM_START:
+        warn(WLOG, "cam: taking a picture");
         cam_power();
         return TASK_DELAY(3000); //3 secs to allow lens to extend and power on
     case CAM_FOCUS:
+        warn(WDEBUG, "CAM_FOCUS");
         digitalWrite(FOCUSPIN,HIGH);
         return TASK_DELAY(2000); //2 secs to allow focus
     case CAM_SHUTTER:
+        warn(WDEBUG, "CAM_SHUTTER");
         digitalWrite(SHUTTER,HIGH);
         return TASK_DELAY(200); //Brief hold of button XXX how long?
     case CAM_STORE:
+        warn(WDEBUG, "CAM_STORE");
         digitalWrite(SHUTTER,LOW);
         digitalWrite(FOCUSPIN,LOW);
-        if(cam_shot<5)
+        if(cam_shot++ < 5)
             cam_state   = CAM_FOCUS;
         return TASK_DELAY(3000); //3 secs to store image on card
     case CAM_FINISH:
-        cam_shot=1;
+        warn(WDEBUG, "CAM_FINISH");
         cam_power();
+        cam_shot        = 1;
         cam_state       = CAM_START;
         /* XXX ~5 mins until next shots? */
         return TASK_DELAY(300000);

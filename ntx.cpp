@@ -174,10 +174,12 @@ ntx_send (byte *buf, byte len)
 
     len = min(len, NTX_BUFSIZ);
     memcpy(ntx_buf, buf, len);
+    warnf(WDEBUG, "Copied [%u] bytes into NTX buffer", (unsigned)len);
 
     ntx_ix      = 0;
     ntx_len     = len;
     ntx_state   = STATE_START;
+    warn(WDEBUG, "Set ntx_state");
     timer_enable();
 
     return len;
