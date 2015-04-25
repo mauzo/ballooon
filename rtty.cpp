@@ -2,6 +2,7 @@
 //RTTY Example (Anthony Stirk) trimmed down
 //29/01/15
  
+#include <stdio.h>
 #include <string.h>
 #include <util/crc16.h>
  
@@ -41,16 +42,18 @@ static wchan
 rtty_run (wchan now) 
 {
     unsigned int    checksum;
-    char            checksum_str[6];
+    char            checksum_str[7];
+
 
     snprintf(datastring,120,"$$HABLEEBLEE");
     checksum = gps_CRC16_checksum(datastring);
-    sprintf(checksum_str, "*%04X\n", checksum);
+    snprintf(checksum_str, sizeof checksum_str, "*%04x\n", checksum);
     strcat(datastring,checksum_str);
     warnf(WLOG, "RTTY tx [%s]", datastring);
-    ntx_send((byte*)datastring, strlen(datastring));
+    ntx_send((byte*)datastring, 120);
+    warn(WDEBUG, "RTTY done send");
 
-    return TASK_TIME(now, 20000);
+    return TASK_SWI(SWI_NTX);
 }
  
 static uint16_t 

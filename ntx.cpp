@@ -215,8 +215,13 @@ ISR(TIMER1_COMPA_vect)
         b = 1;
         if (++ntx_bit == NTX_NSTOP) {
             ntx_bit     = 0;
-            ntx_state   = (ntx_ix++ > ntx_len) 
-                            ? STATE_NONE : STATE_START;
+            if (ntx_ix++ > ntx_len) {
+                ntx_state   = STATE_NONE;
+                swi(SWI_NTX);
+            }
+            else {
+                ntx_state   = STATE_START;
+            }
         }
         break;
     default:
