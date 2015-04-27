@@ -3,6 +3,8 @@ __<avr.arduino.mk>__:
 
 .ifdef USE_ARDUINO
 
+.include "avr.arduino.board.mk"
+
 .if empty(ARDUINO_DIR) || !exists(${ARDUINO_DIR})
 .  error ARDUINO_DIR must be set!
 .endif

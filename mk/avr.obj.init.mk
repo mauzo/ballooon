@@ -4,7 +4,13 @@ __<avr.obj.init.mk>__:
 .ifdef MAKEOBJDIRPREFIX
 MAKEOBJDIR=	${MAKEOBJDIRPREFIX}${.CURDIR}
 .else
-MAKEOBJDIR?=	${.CURDIR}/obj.${TARGET}
+MAKEOBJDIR?=	${.CURDIR}/obj
+.endif
+
+.if empty(BOARD)
+MAKEOBJDIR:=	${MAKEOBJDIR}/${TARGET}
+.else
+MAKEOBJDIR:=	${MAKEOBJDIR}/${TARGET}.${BOARD}
 .endif
 
 __out!=		mkdir -p ${MAKEOBJDIR} 2>&1 && echo ok

@@ -8,8 +8,16 @@
 #include "ntx.h"
 #include "warn.h"
 
-#define PIN_RADIO   3
-#define PIN_ENABLE  8
+#if defined(BOARD_UNO)
+#  define PIN_RADIO     3
+#  define PIN_ENABLE    8
+#elif defined(BOARD_MEGA) || defined(BOARD_MEGA2560)
+#  define PIN_RADIO     11
+#  define PIN_ENABLE    8
+#else
+#  error "I don't know which pins to use on this board"
+#endif
+
 #define PWM_HIGH    110
 #define PWM_LOW     100
 
