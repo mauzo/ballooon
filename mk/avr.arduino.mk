@@ -18,7 +18,7 @@ libCore_SRCS?=	wiring.c wiring_digital.c wiring_analog.c wiring_pulse.c \
 		Tone.cpp IPAddress.cpp
 
 libCore_DIRS?=	${ARDUINO_DIR}/hardware/arduino/cores/arduino \
-		${ARDUINO_DIR}/hardware/arduino/variants/standard
+		${ARDUINO_DIR}/hardware/arduino/variants/${ARDUINO_VARIANT}
 
 libWire_SRCS?=	Wire.cpp twi.c
 
