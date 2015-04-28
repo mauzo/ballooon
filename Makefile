@@ -34,6 +34,10 @@ PROG=		ballooon
 SRCS=		ballooon.ino camera.cpp gps.cpp ntx.cpp rtty.cpp ubx.cpp \
 		warn.cpp
 
+.ifdef FAKEGPS
+SRCS:=		${SRCS:Ngps.cpp} fakegps.cpp
+.endif
+
 USE_ARDUINO=	Wire Core
 LIBS+=		-lm -lprintf_flt
 
