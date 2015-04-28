@@ -12,6 +12,7 @@
 extern task ntx_task;
 
 void    ntx_setup       (void);
-byte    ntx_send        (byte *buf, byte len);
+byte    *ntx_get_buf    (byte *len);
+byte    ntx_send        (byte len);
 
 #endif

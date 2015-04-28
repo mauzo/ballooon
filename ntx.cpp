@@ -172,25 +172,41 @@ ntx_run (wchan now)
 }
 #endif
 
-byte
-ntx_send (byte *buf, byte len)
+/*
+ * Returns a buffer to write into. *len is set to the length available
+ * in the buffer. On failure, returns NULL.
+ */
+byte *
+ntx_get_buf (byte *len)
 {
+    /* byte reads are atomic */
     if (ntx_state != STATE_NONE)
+        return NULL;
+
+    *len = NTX_BUFSIZ;
+    return ntx_buf;
+}
+
+/*
+ * Performs a send out of the buffer returned by ntx_get_buf.
+ */
+byte
+ntx_send (byte len)
+{
+    if (ntx_state != STATE_NONE) {
+        warn(WPANIC, "ntx_send called with send in progress");
         return 0;
+    }
 
     timer_disable();
 
-    len = min(len, NTX_BUFSIZ);
-    memcpy(ntx_buf, buf, len);
-    warnf(WDEBUG, "Copied [%u] bytes into NTX buffer", (unsigned)len);
-
     ntx_ix      = 0;
-    ntx_len     = len;
+    ntx_len     = min(len, NTX_BUFSIZ);
     ntx_state   = STATE_START;
-    warn(WDEBUG, "Set ntx_state");
+    warnf(WDEBUG, "Starting NTX send of [%u] bytes", ntx_len);
     timer_enable();
 
-    return len;
+    return ntx_len;
 }
 
 ISR(TIMER1_COMPA_vect)

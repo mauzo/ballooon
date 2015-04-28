@@ -15,10 +15,13 @@
 
 #define CALLSIGN    "HABLEEBLEE"
 
+#define FIX2DEC(n) (n) / 10000, ((n) < 0 ? -(n) : (n)) % 10000
+
 static wchan    rtty_setup          (void);
 static wchan    rtty_run            (wchan now);
 
 static uint16_t rtty_checksum       (char *string, byte len);
+static byte     rtty_fmt_buf        (char *buf, byte len, gps_data *g);
 
 task rtty_task = {
     .name       = "rtty",
@@ -42,42 +45,62 @@ rtty_setup (void)
 static wchan 
 rtty_run (wchan now) 
 {
-    static unsigned int id  = 0;
-
-    char        buf[120];
-    byte        p;
-    uint16_t    checksum;
+    byte        *buf;
+    byte        len;
     gps_data    *g          = &gps_last_fix;
 
-#define FIX(n) (n) / 10000, ((n) < 0 ? -(n) : (n)) % 10000
+    if (!GPS_FIX_VALID(g)) {
+        warn(WLOG, "No valid fix for RTTY to use");
+        goto fail;
+    }
+    if (!(buf = ntx_get_buf(&len))) {
+        warn(WWARN, "No NTX buffer available for RTTY send");
+        goto fail;
+    }
+    if (!(len = rtty_fmt_buf((char *)buf, len, g)))
+        goto fail;
 
-    p = snprintf_P(buf, sizeof buf,
+    /* grr, avr-libc doesn't support %.*s, so we have to rely on the
+     * null-termination.
+     */
+    warnf(WLOG, "RTTY tx [%s]", buf);
+    ntx_send(len);
+
+    return TASK_SWI(SWI_NTX);
+
+  fail:
+    return TASK_DELAY(2000);
+}
+
+static byte
+rtty_fmt_buf (char *buf, byte len, gps_data *g)
+{
+    static unsigned int id  = 0;
+
+    byte        p;
+    uint16_t    checksum;
+
+    p = snprintf_P(buf, len,
         sF("$$" CALLSIGN ",%u,%02u:%02u:%02u,%li.%04lu,%li.%04lu,%li"),
         ++id,
         g->hr, g->min, g->sec,
-        FIX(g->lat), FIX(g->lon), g->alt
+        FIX2DEC(g->lat), FIX2DEC(g->lon), g->alt
     );
-    if (p > sizeof buf) {
+    if (p > len) {
         warn(WERROR, "RTTY string too long for buffer");
-        goto out;
+        return 0;
     }
-
-#undef FIX
 
     checksum = rtty_checksum(buf, p);
-    p += snprintf_P(buf + p, sizeof(buf) - p, sF("*%04x\n"), checksum);
-    if (p > sizeof buf) {
+    p += snprintf_P(buf + p, len - p, sF("*%04x\n"), checksum);
+    if (p > len) {
         warn(WERROR, "RTTY checksum too long for buffer");
-        goto out;
+        return 0;
     }
 
-    warnf(WLOG, "RTTY tx [%s]", buf);
-    ntx_send((byte *)buf, p);
-
-  out:
-    return TASK_SWI(SWI_NTX);
+    return p;
 }
- 
+
 static uint16_t 
 rtty_checksum (char *string, byte len)
 {

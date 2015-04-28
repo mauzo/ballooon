@@ -25,6 +25,12 @@ typedef struct {
     long        when;
 } gps_data;
 
+/* .when == 0 means we have no fix; the other fields are undefined.
+ * .itow == 0 means the fix is stale.
+ */
+#define GPS_FIX_VALID(g) ((g)->when != 0)
+#define GPS_FIX_STALE(g) ((g)->itow == 0)
+
 extern task     gps_task;
 extern gps_data gps_last_fix;
 
