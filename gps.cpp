@@ -67,11 +67,15 @@ gps_run (wchan now)
         goto fail;
     }
 
-    if (!(pkt = (ubx_nav_pvt *)ubx_read(GPS_ADDR)))
+    if (!(pkt = (ubx_nav_pvt *)ubx_read(GPS_ADDR))) {
+        warn(WWARN, "Failed to read UBX packet");
         goto fail;
+    }
 
-    if (!gps_verify_lock(pkt))
+    if (!gps_verify_lock(pkt)) {
+        warn(WWARN, "Packet failed to verify");
         goto fail;
+    }
         
     gps_parse_pvt(pkt, &gps_last_fix);
     gps_log_fix(&gps_last_fix);
@@ -80,6 +84,7 @@ gps_run (wchan now)
     return TASK_TIME(now, 10000);
 
   fail:
+    warn(WWARN, "Failed to get NAV-PVT");
     return TASK_TIME(now, 3000);
 }
 
@@ -130,16 +135,32 @@ gps_verify_lock (ubx_nav_pvt *pkt)
     warnf(WDEBUG, "Received packet type [%04x]", pkt->type);
     if (pkt->type != UBX_TYP_NAV_PVT) {
         warnf(WWARN, "Not a NAV-PVT packet");
-        return 0;
+        goto fail;
     }
 
-    if ((pkt->fix_type == 3 || pkt->fix_type == 4)
-        && pkt->num_sv > 4
-        && pkt->iTOW != gps_last_fix.itow)
-        return 1;
+    if (pkt->iTOW == gps_last_fix.itow) {
+        warn(WWARN, "Same fix as last time");
+        goto fail;
+    }
+    if (pkt->fix_type != 3 && pkt->fix_type != 4) {
+        warnf(WWARN, "Invalid fix type [%u]", pkt->fix_type);
+        goto fail;
+    }
+    if (pkt->num_sv < 4) {
+        warnf(WWARN, "Not enough satellites [%u]", pkt->num_sv);
+        goto fail;
+    }
 
-    if (gps_last_fix.itow)
+    if (!gps_last_fix.itow)
+        warn(WNOTICE, "Got GPS lock");
+
+    return 1;
+
+  fail:
+    if (gps_last_fix.itow) {
         warn(WNOTICE, "GPS lock lost");
+        gps_last_fix.itow = 0;
+    }
 
     return 0;
 }
