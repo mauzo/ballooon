@@ -8,16 +8,17 @@
  
 #include <Arduino.h>
 
+#include "gps.h"
 #include "ntx.h"
 #include "rtty.h"
 #include "warn.h"
 
+#define CALLSIGN    "HABLEEBLEE"
+
 static wchan    rtty_setup          (void);
 static wchan    rtty_run            (wchan now);
 
-static uint16_t gps_CRC16_checksum  (char *string);
-
-static char             datastring[120];
+static uint16_t rtty_checksum       (char *string, byte len);
 
 task rtty_task = {
     .name       = "rtty",
@@ -41,23 +42,44 @@ rtty_setup (void)
 static wchan 
 rtty_run (wchan now) 
 {
-    unsigned int    checksum;
-    char            checksum_str[7];
+    static unsigned int id  = 0;
 
+    char        buf[120];
+    byte        p;
+    uint16_t    checksum;
+    gps_data    *g          = &gps_last_fix;
 
-    snprintf(datastring,120,"$$HABLEEBLEE");
-    checksum = gps_CRC16_checksum(datastring);
-    snprintf(checksum_str, sizeof checksum_str, "*%04x\n", checksum);
-    strcat(datastring,checksum_str);
-    warnf(WLOG, "RTTY tx [%s]", datastring);
-    ntx_send((byte*)datastring, 120);
-    warn(WDEBUG, "RTTY done send");
+#define FIX(n) (n) / 10000, ((n) < 0 ? -(n) : (n)) % 10000
 
+    p = snprintf_P(buf, sizeof buf,
+        sF("$$" CALLSIGN ",%u,%02u:%02u:%02u,%li.%04lu,%li.%04lu,%li"),
+        ++id,
+        g->hr, g->min, g->sec,
+        FIX(g->lat), FIX(g->lon), g->alt
+    );
+    if (p > sizeof buf) {
+        warn(WERROR, "RTTY string too long for buffer");
+        goto out;
+    }
+
+#undef FIX
+
+    checksum = rtty_checksum(buf, p);
+    p += snprintf_P(buf + p, sizeof(buf) - p, sF("*%04x\n"), checksum);
+    if (p > sizeof buf) {
+        warn(WERROR, "RTTY checksum too long for buffer");
+        goto out;
+    }
+
+    warnf(WLOG, "RTTY tx [%s]", buf);
+    ntx_send((byte *)buf, p);
+
+  out:
     return TASK_SWI(SWI_NTX);
 }
  
 static uint16_t 
-gps_CRC16_checksum (char *string)
+rtty_checksum (char *string, byte len)
 {
     size_t i;
     uint16_t crc;
@@ -66,7 +88,7 @@ gps_CRC16_checksum (char *string)
     crc = 0xFFFF;
     
     // Calculate checksum ignoring the first two $s
-    for (i = 2; i < strlen(string); i++) {
+    for (i = 2; i < len; i++) {
         c = string[i];
         crc = _crc_xmodem_update (crc, c);
     }
