@@ -1,5 +1,4 @@
 build-uno/
-OneWire/
 obj/
 config.mk
 *.s

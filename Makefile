@@ -31,14 +31,14 @@
 # What to build
 
 PROG=		ballooon
-SRCS=		ballooon.ino camera.cpp gps.cpp ntx.cpp rtty.cpp ubx.cpp \
-		warn.cpp
+SRCS=		ballooon.ino camera.cpp gps.cpp ntx.cpp rtty.cpp temp.cpp \
+		ubx.cpp warn.cpp
 
 .ifdef FAKEGPS
 SRCS:=		${SRCS:Ngps.cpp} fakegps.cpp
 .endif
 
-USE_ARDUINO=	Wire Core
+USE_ARDUINO=	Wire DallasTemperature OneWire Core 
 LIBS+=		-lm -lprintf_flt
 
 # Information about the machine we are building for
@@ -57,6 +57,16 @@ CFLAGS+=	-DNTX_DEBUG
 
 CXXFLAGS=	${CFLAGS:N-std=*} -fno-exceptions
 LDFLAGS+=	-Os -Wl,--gc-sections
+
+# Libraries
+
+LIBDIR=		${.CURDIR}/lib
+
+libOneWire_DIRS=		${LIBDIR}/OneWire
+libOneWire_SRCS=		OneWire.cpp
+
+libDallasTemperature_DIRS=	${LIBDIR}/dallas-temperature-control
+libDallasTemperature_SRCS=	DallasTemperature.cpp
 
 # Host-build compat
 

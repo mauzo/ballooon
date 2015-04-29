@@ -9,6 +9,7 @@
 #include "ntx.h"
 #include "rtty.h"
 #include "task.h"
+#include "temp.h"
 #include "warn.h"
 
 task *all_tasks[] = { 
@@ -18,6 +19,7 @@ task *all_tasks[] = {
     &ntx_task,
 #endif
     &rtty_task, 
+    &temp_task,
     NULL
 };
 
