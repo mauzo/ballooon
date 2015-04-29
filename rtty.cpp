@@ -43,7 +43,7 @@ rtty_run (unsigned long now)
     unsigned int    checksum;
     char            checksum_str[6];
 
-    snprintf(datastring,120,"$$HABLEEBLEE");
+    snprintf(datastring,120,"$$HBLEE");
     checksum = gps_CRC16_checksum(datastring);
     sprintf(checksum_str, "*%04X\n", checksum);
     strcat(datastring,checksum_str);

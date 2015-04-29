@@ -9,4 +9,6 @@
 
 extern task     sd_task;
 
+int    freeRam       (void);
+
 #endif

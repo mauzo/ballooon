@@ -23,6 +23,7 @@ struct GPS_DATA {
 };
 
 extern task gps_task;
+extern GPS_DATA lastKnownFix;
 
 void        checkForLock    (void);
 void        parseUBX        (void);

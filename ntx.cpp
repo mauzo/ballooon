@@ -7,7 +7,7 @@
 #include "ntx.h"
 #include "warn.h"
 
-#define PIN_RADIO   3
+#define PIN_RADIO   11
 #define PIN_ENABLE  8
 #define PWM_HIGH    110
 #define PWM_LOW     100

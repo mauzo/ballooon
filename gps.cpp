@@ -31,8 +31,8 @@ byte airborne1g[] = {0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF,
 // 0x10 0x27 0x00 0x00 for 'fixed altitude variance? Time and pos masks?
 byte reqNAV_PVT[] =  {0xB5, 0x62, 0x01, 0x07, 0x00, 0x00, 0x08, 0x19};
 
-static GPS_DATA         gpsData;
-static GPS_DATA         lastKnownFix;
+static GPS_DATA                gpsData;
+GPS_DATA         lastKnownFix;
 static boolean          gpsLock         = false;
 static unsigned long    gpsCheckTime;
 
