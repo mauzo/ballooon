@@ -35,7 +35,7 @@ setup (void)
 
     for (t = all_tasks; *t; t++) {
         if ((*t)->setup) {
-	    warnf(WDEBUG, "Calling setup for %s", (*t)->name);
+	    warnf(WDEBUG, "Calling setup for [%s]", (*t)->name);
             (*t)->when = (*t)->setup();
         }
         else {
@@ -78,9 +78,9 @@ loop (void)
             /* XXX */
             break;
         case TASK_TYP_SWI:
-            if (swis & (1 << WCHAN_VALUE(w))) {
-                warnf(WDEBUG, "Calling [%s] for swi [%u]",
-                    (*t)->name, WCHAN_VALUE(w));
+            if (swis & WCHAN_VALUE(w)) {
+                warnf(WDEBUG, "Calling [%s] for swi [%02x]",
+                    (*t)->name, swis & WCHAN_VALUE(w));
                 (*t)->when = r(w);
             }
             break;
@@ -94,6 +94,6 @@ void
 swi (byte i)
 {
     CRIT_START {
-        swi_active |= (1 << i);
+        swi_active |= i;
     } CRIT_END;
 }

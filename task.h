@@ -47,9 +47,9 @@ typedef struct task {
 extern task *all_tasks[];
 
 /* We currently have 8 swi lines. */
-#define SWI_NTX     0
-#define SWI_GPS     1
-#define SWI_TEMP    2
+#define SWI_NTX     (1<<0)
+#define SWI_GPS     (1<<1)
+#define SWI_TEMP    (1<<2)
 
 void    swi     (byte i);
 
