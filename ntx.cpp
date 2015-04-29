@@ -4,11 +4,20 @@
 
 #include <Arduino.h>
 
+#include "atomic.h"
 #include "ntx.h"
 #include "warn.h"
 
-#define PIN_RADIO   11
-#define PIN_ENABLE  8
+#if defined(BOARD_UNO)
+#  define PIN_RADIO     3
+#  define PIN_ENABLE    8
+#elif defined(BOARD_MEGA) || defined(BOARD_MEGA2560)
+#  define PIN_RADIO     11
+#  define PIN_ENABLE    8
+#else
+#  error "I don't know which pins to use on this board"
+#endif
+
 #define PWM_HIGH    110
 #define PWM_LOW     100
 
@@ -48,7 +57,7 @@ static volatile byte    ntx_sent[NTX_BUFSIZ];
 static volatile byte    ntx_nsent   = 0;
 static volatile byte    ntx_isrs    = 0;
 
-static void     ntx_run             (unsigned long now);
+static wchan    ntx_run             (wchan now);
 #endif
 
 static void     setup_radio         (void);
@@ -59,7 +68,7 @@ static void     timer_enable        (void);
 #ifdef NTX_DEBUG
 task ntx_task = {
     .name       = "NTX",
-    .when       = TASK_START,
+    .when       = TASK_STOP,
 
     .setup      = 0,
     .run        = ntx_run,
@@ -70,10 +79,10 @@ task ntx_task = {
 void
 ntx_setup (void)
 {
-    cli();
-    setup_radio();
-    setup_timer();
-    sei();
+    CRIT_START {
+        setup_radio();
+        setup_timer();
+    } CRIT_END;
 }
 
 /* Set up timer 1 (the 16-bit timer) to tick at the baud rate.
@@ -101,15 +110,19 @@ setup_timer (void)
 static void
 timer_enable (void)
 {
-    /* enable timer interrupt */
-    TIMSK1 |= (1 << OCIE1A);
+    CRIT_START {
+        /* enable timer interrupt */
+        TIMSK1 |= (1 << OCIE1A);
+    } CRIT_END;
 }
 
 static void
 timer_disable (void)
 {
-    /* disable timer interrupt */
-    TIMSK1 &= ~(1 << OCIE1A);
+    CRIT_START {
+        /* disable timer interrupt */
+        TIMSK1 &= ~(1 << OCIE1A);
+    } CRIT_END;
 }
 
 /* Should be called with interrupts disabled */
@@ -131,8 +144,8 @@ setup_radio (void)
 }
 
 #ifdef NTX_DEBUG
-void
-ntx_run (unsigned long now)
+wchan
+ntx_run (wchan now)
 {
     static char     states[][6] = { "none", "start", "data", "stop" };
     byte            i;
@@ -155,27 +168,45 @@ ntx_run (unsigned long now)
         timer_enable();
     }
 
-    ntx_task.when = now + 1000;
+    return TASK_TIME(now, 2000);
 }
 #endif
 
-byte
-ntx_send (byte *buf, byte len)
+/*
+ * Returns a buffer to write into. *len is set to the length available
+ * in the buffer. On failure, returns NULL.
+ */
+byte *
+ntx_get_buf (byte *len)
 {
+    /* byte reads are atomic */
     if (ntx_state != STATE_NONE)
+        return NULL;
+
+    *len = NTX_BUFSIZ;
+    return ntx_buf;
+}
+
+/*
+ * Performs a send out of the buffer returned by ntx_get_buf.
+ */
+byte
+ntx_send (byte len)
+{
+    if (ntx_state != STATE_NONE) {
+        warn(WPANIC, "ntx_send called with send in progress");
         return 0;
+    }
 
     timer_disable();
 
-    len = min(len, NTX_BUFSIZ);
-    memcpy(ntx_buf, buf, len);
-
     ntx_ix      = 0;
-    ntx_len     = len;
+    ntx_len     = min(len, NTX_BUFSIZ);
     ntx_state   = STATE_START;
+    warnf(WDEBUG, "Starting NTX send of [%u] bytes", ntx_len);
     timer_enable();
 
-    return len;
+    return ntx_len;
 }
 
 ISR(TIMER1_COMPA_vect)
@@ -210,8 +241,13 @@ ISR(TIMER1_COMPA_vect)
         b = 1;
         if (++ntx_bit == NTX_NSTOP) {
             ntx_bit     = 0;
-            ntx_state   = (ntx_ix++ > ntx_len) 
-                            ? STATE_NONE : STATE_START;
+            if (ntx_ix++ > ntx_len) {
+                ntx_state   = STATE_NONE;
+                swi(SWI_NTX);
+            }
+            else {
+                ntx_state   = STATE_START;
+            }
         }
         break;
     default:

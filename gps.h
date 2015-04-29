@@ -9,24 +9,29 @@
 
 #define GPS_ADDR    0x42
 
-// Define structure class for GPS data
-struct GPS_DATA {
-    byte    Hr;
-    byte    Min;
-    byte    Sec;
-    long    Lat;
-    long    Lon;
-    long    Alt; // (Above mean sea level)
-    byte    numSats;
-    byte    fixType;
-    byte    Valid;
-};
+typedef struct {
+    byte        hr;
+    byte        min;
+    byte        sec;
 
-extern task gps_task;
-extern GPS_DATA lastKnownFix;
+    long        lat;
+    long        lon;
+    long        alt; // (Above mean sea level)
 
-void        checkForLock    (void);
-void        parseUBX        (void);
-void        printGPSData    (void);
+    byte        num_sat;
+    byte        fix_type;
+
+    uint32_t    itow;
+    long        when;
+} gps_data;
+
+/* .when == 0 means we have no fix; the other fields are undefined.
+ * .itow == 0 means the fix is stale.
+ */
+#define GPS_FIX_VALID(g) ((g)->when != 0)
+#define GPS_FIX_STALE(g) ((g)->itow == 0)
+
+extern task     gps_task;
+extern gps_data gps_last_fix;
 
 #endif

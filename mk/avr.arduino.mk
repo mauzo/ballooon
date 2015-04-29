@@ -3,6 +3,8 @@ __<avr.arduino.mk>__:
 
 .ifdef USE_ARDUINO
 
+.include "avr.arduino.board.mk"
+
 .if empty(ARDUINO_DIR) || !exists(${ARDUINO_DIR})
 .  error ARDUINO_DIR must be set!
 .endif
@@ -16,7 +18,7 @@ libCore_SRCS?=	wiring.c wiring_digital.c wiring_analog.c wiring_pulse.c \
 		Tone.cpp IPAddress.cpp
 
 libCore_DIRS?=	${ARDUINO_DIR}/hardware/arduino/cores/arduino \
-		${ARDUINO_DIR}/hardware/arduino/variants/standard
+		${ARDUINO_DIR}/hardware/arduino/variants/${ARDUINO_VARIANT}
 
 libSD_SRCS?=	SD.cpp File.cpp \
 		Sd2Card.cpp SdFile.cpp SdVolume.cpp

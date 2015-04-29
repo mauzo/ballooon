@@ -31,20 +31,18 @@
 # What to build
 
 PROG=		ballooon
-SRCS=		ballooon.ino sd.cpp warn.cpp\
-		camera.cpp gps.cpp rtty.cpp ubx.cpp ntx.cpp 
+SRCS=		ballooon.ino camera.cpp gps.cpp ntx.cpp rtty.cpp sd.cpp \
+		temp.cpp ubx.cpp warn.cpp
 
-USE_ARDUINO=	Wire SdFat Core
+.ifdef FAKEGPS
+SRCS:=		${SRCS:Ngps.cpp} fakegps.cpp
+.endif
+
+USE_ARDUINO=	Wire DallasTemperature OneWire SdFat Core 
 LIBS+=		-lm -lprintf_flt
 
 # Information about the machine we are building for
 
-AVAIL_FLASH=	32768
-AVAIL_SRAM=	2048
-AVAIL_EEPROM=	1024
-
-AVRDUDE_MCU= 	m328p
-AVRDUDE_PROG=	arduino
 TTY_SPEED=	9600
 
 # Compiler and linker flags
@@ -53,17 +51,29 @@ CFLAGS+=	-ffunction-sections -fdata-sections -Os -std=gnu99
 CFLAGS+=	-Wall -Wno-parentheses
 CFLAGS+=	-I${.CURDIR}
 
+.ifdef NTX_DEBUG
+CFLAGS+=	-DNTX_DEBUG
+.endif
+
 CXXFLAGS=	${CFLAGS:N-std=*} -fno-exceptions
 LDFLAGS+=	-Os -Wl,--gc-sections
 
-# We have our own copy of libSdFat
+# Libraries
 
-libSdFat_DIRS=	${.CURDIR}/SdFat/SdFat ${.CURDIR}/SdFat/SdFat/utility
+LIBDIR=		${.CURDIR}/lib
+
+libSdFat_DIRS=	${LIBDIR}/SdFat/SdFat ${LIBDIR}/SdFat/SdFat/utility
 libSdFat_SRCS=	MinimumSerial.cpp SdFatBase.cpp SdFatUtil.cpp \
 		SdSpiCard.cpp SdSpiSAM3X.cpp SdSpiSTM32F1.cpp SdSpiTeensy3.cpp \
 		FatFile.cpp FatFileLFN.cpp FatFilePrint.cpp FatFileSFN.cpp \
 		FatVolume.cpp FmtNumber.cpp fstream.cpp istream.cpp \
 		ostream.cpp StdioStream.cpp
+
+libOneWire_DIRS=		${LIBDIR}/OneWire
+libOneWire_SRCS=		OneWire.cpp
+
+libDallasTemperature_DIRS=	${LIBDIR}/dallas-temperature-control
+libDallasTemperature_SRCS=	DallasTemperature.cpp
 
 # Host-build compat
 

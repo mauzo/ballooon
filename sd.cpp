@@ -13,12 +13,12 @@
 
 #define SPI_SS  53
 
-static void     sd_setup    (void);
-static void     sd_run      (unsigned long now);
+static wchan    sd_setup    (void);
+static wchan    sd_run      (wchan now);
 
 task sd_task = {
     .name   = "SD",
-    .when   = TASK_INACTIVE,
+    .when   = TASK_STOP,
 
     .setup  = sd_setup,
     .run    = sd_run,
@@ -28,7 +28,7 @@ task sd_task = {
 static SdFat    real_sd_vol;
 static SdFat    *sd_vol = &real_sd_vol;
 
-static void
+static wchan
 sd_setup (void)
 {
     File    f;
@@ -58,11 +58,11 @@ sd_setup (void)
     warnf(WDEBUG, "read() returned [%i]: [%s]", rv, buf);
     f.close();
 
-    sd_task.when = TASK_START;
+    return TASK_RUN;
 }
 
-static void
-sd_run (unsigned long now)
+static wchan
+sd_run (wchan now)
 {
     warn(WLOG, "sd_run");
     File f;
@@ -76,30 +76,30 @@ sd_run (unsigned long now)
     warn(WDEBUG, "Writing a file");
     f = sd_vol->open("test.txt", O_RDWR | O_AT_END);
     
-    f.write(lastKnownFix.Hr);
-    f.write(lastKnownFix.Min);
-    f.write(lastKnownFix.Sec);
+    f.write(gps_last_fix.hr);
+    f.write(gps_last_fix.min);
+    f.write(gps_last_fix.sec);
     f.write(",");
     
-    f.write(lastKnownFix.Lat);
+    f.write(gps_last_fix.lat);
     f.write(",");
     
-    f.write(lastKnownFix.Lon);
+    f.write(gps_last_fix.lon);
     f.write(",");
     
-    f.write(lastKnownFix.Alt);
+    f.write(gps_last_fix.alt);
     f.write(",");
     
-    f.write(lastKnownFix.numSats);
+    f.write(gps_last_fix.num_sat);
     f.write(",");
     
-    f.write(lastKnownFix.fixType);
+    f.write(gps_last_fix.fix_type);
     f.write(",");
     
     f.close();
     
     warn(WDEBUG, "GPS data written to card");
     
-    sd_task.when = millis()+3000;
+    return TASK_TIME(now, 3000);
 }
 
