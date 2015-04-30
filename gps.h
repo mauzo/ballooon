@@ -18,6 +18,14 @@ typedef struct {
     long        lon;
     long        alt; // (Above mean sea level)
 
+    long        velN;
+    long        velE;
+    long        velD;
+
+    uint32_t    hAcc;
+    uint32_t    vAcc;
+    uint32_t    sAcc;
+
     byte        num_sat;
     byte        fix_type;
 
