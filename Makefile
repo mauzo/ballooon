@@ -31,7 +31,7 @@
 # What to build
 
 PROG=		ballooon
-SRCS=		ballooon.ino camera.cpp fakegps.cpp ntx.cpp rtty.cpp sd.cpp \
+SRCS=		ballooon.ino camera.cpp gps.cpp ntx.cpp rtty.cpp sd.cpp \
 		temp.cpp ubx.cpp warn.cpp
 
 .ifdef FAKEGPS
