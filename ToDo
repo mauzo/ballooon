@@ -1,0 +1,42 @@
+Camera:
+
+	- Check all delays
+	- Think about flow (power state, etc)
+	- Test error correcting
+
+GPS:
+
+	- Decide on info flow (always log from lastKnownFix)
+
+NTX:
+
+	- Test radio tx with dl-fldigi
+
+RTTY:
+
+	- Add fix type flag to tx string (0/1 for live/old)
+
+SD:
+
+	- No changes
+
+TEMP:
+
+	- Check senson serial nos
+	- Check it works with both together
+
+UBX:
+
+	- No changes
+
+WARN:
+
+	- Function to write to SD card (probably for Ben)
+
+OTHER:
+
+	- Carry on with schematic
+	- Enclosure material and design
+	- Design harness
+	- Assemble breadboard
+
