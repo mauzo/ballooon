@@ -55,6 +55,8 @@ fakegps_setup (void)
 static wchan
 fakegps_run (wchan why)
 {
-    gps_last_fix.when = millis();
-    return TASK_TIME(why, 10000);
+    gps_last_fix.when   = millis();
+    gps_last_fix.alt    += 10;
+    swi(SWI_GPS);
+    return TASK_SWI(SWI_NTXLO);
 }
