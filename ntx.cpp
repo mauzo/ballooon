@@ -226,8 +226,9 @@ ISR(TIMER1_COMPA_vect)
     /* XXX parity? */
     switch (ntx_state) {
     case STATE_NONE:
+        b = 0;
         timer_disable();
-        return;
+        break;
     case STATE_START:
         b = 0;
         if (++ntx_bit == NTX_NSTART) {
