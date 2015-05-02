@@ -15,11 +15,11 @@
 
 static wchan    sd_setup    (void);
 static wchan    sd_run      (wchan now);
-static void     time_string (gps_data *g,char *b);
-static void     pos_string (gps_data *g,char *b);
-static void     spd_string (gps_data *g,char *b);
-static void     acc_string (gps_data *g,char *b);
-static void     fix_string (gps_data *g,char *b);
+static void     time_string (gps_data *g,char *b,uint8_t s);
+static void     pos_string (gps_data *g,char *b,uint8_t s);
+static void     spd_string (gps_data *g,char *b,uint8_t s);
+static void     acc_string (gps_data *g,char *b,uint8_t s);
+static void     fix_string (gps_data *g,char *b,uint8_t s);
 
 task sd_task = {
     .name   = "SD",
@@ -81,56 +81,57 @@ sd_run (wchan now)
     warn(WDEBUG, "Writing a file");
     f = sd_vol->open("test.txt", O_RDWR | O_AT_END);
     
-    time_string(&gps_last_fix,data_buf);
+    uint8_t sz = sizeof(data_buf);
+    time_string(&gps_last_fix,data_buf,sz);
     f.write(data_buf);
     
-    pos_string(&gps_last_fix,data_buf);
+    pos_string(&gps_last_fix,data_buf,sz);
     f.write(data_buf);
     
-    spd_string(&gps_last_fix,data_buf);
+    spd_string(&gps_last_fix,data_buf,sz);
     f.write(data_buf);
     
-    acc_string(&gps_last_fix,data_buf);
+    acc_string(&gps_last_fix,data_buf,sz);
     f.write(data_buf);
     
-    fix_string(&gps_last_fix,data_buf);
+    fix_string(&gps_last_fix,data_buf,sz);
     f.write(data_buf);
     
-    f.write("\n");
+    f.println();
     f.close();
     
     warn(WDEBUG, "GPS data written to card");
     
-    return TASK_TIME(now, 10000);
+    return TASK_SWI(SWI_GPS);
 }
 
-void time_string
-(gps_data *g, char *b)
+void
+time_string (gps_data *g, char *b,uint8_t s)
 {
-    snprintf(b, sizeof(b), "%02u:%02u:%02u,", g->hr,g->min,g->sec);
+    snprintf(b, s, "%02u:%02u:%02u,", g->hr,g->min,g->sec);
 }
 
-void pos_string
-(gps_data *g, char *b)
+void
+pos_string (gps_data *g, char *b,uint8_t s)
 {
     long d = 10000000; // lat/lon scaling = 1e-7.
-    snprintf(b, sizeof(b), "%+03li.%05li,%+03li.%05li,%lu,", g->lat/d,(g->lat % d)/100,g->lon/d,(g->lon % d)/100,g->alt); 
+    snprintf(b, s, "%+03li.%05li,%+03li.%05li,%lu,", g->lat/d,(g->lat % d)/100,g->lon/d,(g->lon % d)/100,g->alt); 
 }
 
-void spd_string
-(gps_data *g, char *b)
+void
+spd_string (gps_data *g, char *b,uint8_t s)
 {
-    snprintf(b, sizeof(b), "%+li,%+li,%+li,", g->velN,g->velE,g->velD);
+    snprintf(b, s, "%+li,%+li,%+li,", g->velN,g->velE,g->velD);
 }
 
-void acc_string
-(gps_data *g, char *b)
+void
+acc_string (gps_data *g, char *b,uint8_t s)
 {
-    snprintf(b, sizeof(b), "%lu,%lu,%lu,", g->hAcc,g->vAcc,g->sAcc);
+    snprintf(b, s, "%lu,%lu,%lu,", g->hAcc,g->vAcc,g->sAcc);
 }
 
-void fix_string
-(gps_data *g, char *b)
+void
+fix_string (gps_data *g, char *b,uint8_t s)
 {
-    snprintf(b, sizeof(b), "%u,%u,", g->num_sat,g->fix_type);
+    snprintf(b, s, "%u,%u,", g->num_sat,g->fix_type);
 }

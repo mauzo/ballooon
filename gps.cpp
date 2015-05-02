@@ -175,9 +175,9 @@ gps_parse_pvt (ubx_nav_pvt *pkt, gps_data *g)
     g->fix_type = pkt->fix_type;
     g->num_sat  = pkt->num_sv;
 
-    g->lon      = pkt->lon / 100;
-    g->lat      = pkt->lat / 100;
-    g->alt      = pkt->height / 100;
+    g->lon      = pkt->lon;
+    g->lat      = pkt->lat;
+    g->alt      = pkt->height;
 
     if (pkt->valid & UBX_NAVPVT_VALID_TIME) {
         g->hr   = pkt->hour;

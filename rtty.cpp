@@ -13,7 +13,7 @@
 #include "rtty.h"
 #include "warn.h"
 
-#define CALLSIGN    "HABLEEBLEE"
+#define CALLSIGN    "HBLEE"
 
 #define FIX2DEC(n) (n) / 10000, ((n) < 0 ? -(n) : (n)) % 10000
 
