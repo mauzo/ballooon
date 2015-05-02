@@ -8,7 +8,7 @@
 
 static wchan    cam_setup       (void);
 static wchan    cam_shoot       (wchan now);
-static byte     cam_check_power (byte expect);
+static byte     cam_check_power ();
 static void     cam_power       (void);
 
 task cam_task = {
@@ -63,26 +63,30 @@ cam_shoot (wchan now)
 
     switch (cam_state++) {
     case CAM_START:
+        if (cam_check_power())
+            goto power_off;
         warn(WLOG, "cam: taking a picture");
         cam_shot        = 1;
         cam_power();
         return TASK_DELAY(3000); //3 secs to allow lens to extend and power on
 
     case CAM_FOCUS:
+        if (!cam_check_power())
+            goto power_on;
         warn(WDEBUG, "CAM_FOCUS");
-        if (!cam_check_power(1)) {
-            cam_state   = CAM_START;
-            return TASK_RUN;
-        }
         digitalWrite(PIN_FOCUS, HIGH);
         return TASK_DELAY(2000); //2 secs to allow focus
 
     case CAM_SHUTTER:
+        if (!cam_check_power())
+            goto power_on;
         warn(WDEBUG, "CAM_SHUTTER");
         digitalWrite(PIN_SHUTTER, HIGH);
         return TASK_DELAY(200); //Brief hold of button XXX how long?
 
     case CAM_STORE:
+        if (!cam_check_power())
+            goto power_on;
         warn(WDEBUG, "CAM_STORE");
         digitalWrite(PIN_SHUTTER, LOW);
         digitalWrite(PIN_FOCUS, LOW);
@@ -91,49 +95,42 @@ cam_shoot (wchan now)
         return TASK_DELAY(3000); //3 secs to store image on card
 
     case CAM_POWEROFF:
-        warn(WDEBUG, "CAM_POWEROFF");
-        cam_power();
-        return TASK_DELAY(3000); // 3s to complete powerdown
+        if (cam_check_power()) {
+            warn(WDEBUG, "CAM_POWEROFF");
+            cam_power();
+            return TASK_DELAY(3000); // 3s to complete powerdown
+        }
+        /* fall through */
 
     case CAM_FINISH:
         warn(WDEBUG, "CAM_FINISH");
-        if (!cam_check_power(0)) {
-            cam_state   = CAM_POWEROFF;
-            return TASK_RUN;
-        }
+        if (cam_check_power())
+            goto power_off;
         cam_state       = CAM_START;
         /* XXX ~5 mins until next shots? */
         return TASK_DELAY(5*60*1000L);
 
     default:
         warn(WERROR, "Camera task: bad state");
-        cam_check_power(0);
+        if (cam_check_power())
+            cam_power();
         cam_state       = CAM_START;
         return TASK_DELAY(3*60*1000L);
     }
+
+  power_off:
+    warn(WWARN, "Camera was powered on unexpectedly");
+    cam_power();
+  power_on:
+    warn(WERROR, "Camera power is incorrect, trying to recover");
+    cam_state = CAM_START;
+    return TASK_DELAY(3000);
 }
 
 static byte
-cam_check_power (byte expect)
+cam_check_power ()
 {
-    byte s;
-
-    s = digitalRead(PIN_DETECT);
-    if (s == expect)
-        return 1;
-
-    warnf(WWARN, "Camera powered [%S] when it should be [%S]",
-        (s ? sF("on") : sF("off")), 
-        (expect ? sF("on") : sF("off"))
-    );
-    cam_power();
-    delay(300);
-
-    s = digitalRead(PIN_DETECT);
-    if (s == expect)
-        return 1;
-
-    return 0;
+    return digitalRead(PIN_DETECT);
 }
 
 static void 
