@@ -15,10 +15,30 @@ NTX:
 RTTY:
 
 	- Add fix type flag to tx string (0/1 for live/old)
+        # I'm not sure about this... we can always tell how old a fix
+        # is, because it's timestamped. That 4-space position (the
+        # balloon was here at this time) will always be somewhat
+        # out-of-date, and I'm not sure a simple 'did we manage to get a
+        # new fix last time we asked' helps us predict where it is now,
+        # or (more importantly) where it will be when it comes down.
 
 SD:
 
 	- No changes
+
+SIREN:
+        - Write siren module: wait for SWI_GPS; check the fix to see if
+          we are below some appropriate ceiling and falling; turn on the
+          siren. 
+          
+        - Do we need to think about the possibility that we might lose
+          satellite reception before we drop below the ceiling? It would
+          be possible to keep some sort of running estimate of when we
+          will get there (based on the velocity numbers) and if we
+          haven't got a fix, turn on the siren at that point. (This
+          might mean adjusting the scheduler again, to allow for waiting
+          on SWI-or-time; I should really look at how a real OS does
+          this, to see what I can steal.)
 
 TEMP:
 
