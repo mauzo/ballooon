@@ -50,6 +50,7 @@ extern task *all_tasks[];
 #define SWI_NTX     (1<<0)
 #define SWI_GPS     (1<<1)
 #define SWI_TEMP    (1<<2)
+#define SWI_NTXLO   (1<<3)
 
 void    swi     (byte i);
 

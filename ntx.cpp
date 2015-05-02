@@ -25,6 +25,7 @@
 #define NTX_NSTART  1
 #define NTX_NDATA   7
 #define NTX_NSTOP   2
+#define NTX_LOWAT   10
 
 #define STATE_NONE  0
 #define STATE_START 1
@@ -204,6 +205,10 @@ ntx_send (byte len)
     ntx_len     = min(len, NTX_BUFSIZ);
     ntx_state   = STATE_START;
     warnf(WDEBUG, "Starting NTX send of [%u] bytes", ntx_len);
+
+    if (ntx_len < NTX_LOWAT)
+        swi(SWI_NTXLO);
+
     timer_enable();
 
     return ntx_len;
@@ -241,6 +246,10 @@ ISR(TIMER1_COMPA_vect)
         b = 1;
         if (++ntx_bit == NTX_NSTOP) {
             ntx_bit     = 0;
+
+            if (ntx_ix == ntx_len - NTX_LOWAT)
+                swi(SWI_NTXLO);
+
             if (ntx_ix++ > ntx_len) {
                 ntx_state   = STATE_NONE;
                 swi(SWI_NTX);
