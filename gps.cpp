@@ -81,7 +81,7 @@ gps_run (wchan now)
     gps_log_fix(&gps_last_fix);
     swi(SWI_GPS);
 
-    return TASK_TIME(now, 10000);
+    return TASK_SWI(SWI_NTXLO);
 
   fail:
     warn(WWARN, "Failed to get NAV-PVT");
