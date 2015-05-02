@@ -21,9 +21,9 @@ task cam_task = {
 };
 
 #define PIN_DETECT      3
-#define PIN_POWER	4
-#define PIN_FOCUS	5
-#define PIN_SHUTTER	6
+#define PIN_POWER	26
+#define PIN_FOCUS	28
+#define PIN_SHUTTER	30
 
 #define CAM_START       0
 #define CAM_FOCUS       1

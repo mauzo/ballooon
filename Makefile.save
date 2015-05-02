@@ -31,14 +31,14 @@
 # What to build
 
 PROG=		ballooon
-SRCS=		ballooon.ino camera.cpp fakegps.cpp ntx.cpp rtty.cpp sd.cpp \
-		temp.cpp ubx.cpp warn.cpp
+SRCS=		ballooon.ino camera.cpp gps.cpp ntx.cpp rtty.cpp temp.cpp \
+		ubx.cpp warn.cpp
 
 .ifdef FAKEGPS
 SRCS:=		${SRCS:Ngps.cpp} fakegps.cpp
 .endif
 
-USE_ARDUINO=	Wire DallasTemperature OneWire SdFat Core 
+USE_ARDUINO=	Wire DallasTemperature OneWire Core 
 LIBS+=		-lm -lprintf_flt
 
 # Information about the machine we are building for
@@ -61,13 +61,6 @@ LDFLAGS+=	-Os -Wl,--gc-sections
 # Libraries
 
 LIBDIR=		${.CURDIR}/lib
-
-libSdFat_DIRS=	${LIBDIR}/SdFat/SdFat ${LIBDIR}/SdFat/SdFat/utility
-libSdFat_SRCS=	MinimumSerial.cpp SdFatBase.cpp SdFatUtil.cpp \
-		SdSpiCard.cpp SdSpiSAM3X.cpp SdSpiSTM32F1.cpp SdSpiTeensy3.cpp \
-		FatFile.cpp FatFileLFN.cpp FatFilePrint.cpp FatFileSFN.cpp \
-		FatVolume.cpp FmtNumber.cpp fstream.cpp istream.cpp \
-		ostream.cpp StdioStream.cpp
 
 libOneWire_DIRS=		${LIBDIR}/OneWire
 libOneWire_SRCS=		OneWire.cpp

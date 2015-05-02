@@ -16,12 +16,12 @@
 
 task *all_tasks[] = {
     &gps_task,
-    &cam_task,
+    //&cam_task,
 #ifdef NTX_DEBUG
     &ntx_task,
 #endif
     &rtty_task, 
-    &sd_task,
+    //&sd_task,
     &temp_task,
     NULL
 };
@@ -35,6 +35,9 @@ setup (void)
 
     Serial.begin(9600); // Start debug output
     Wire.begin(); //Start I2C link
+    
+    //Delay to give a chance to get the monitor running, etc
+    delay(3000);
 
     for (t = all_tasks; *t; t++) {
         if ((*t)->setup) {

@@ -49,6 +49,7 @@ rtty_run (wchan now)
     byte        len;
     gps_data    *g          = &gps_last_fix;
 
+    Serial.println(g->when);
     if (!GPS_FIX_VALID(g)) {
         warn(WLOG, "No valid fix for RTTY to use");
         goto fail;
