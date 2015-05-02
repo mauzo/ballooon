@@ -20,10 +20,19 @@ task cam_task = {
     .reset  = 0,
 };
 
-#define PIN_DETECT      3
-#define PIN_POWER	26
-#define PIN_FOCUS	28
-#define PIN_SHUTTER	30
+#if defined(BOARD_UNO)
+#  define PIN_DETECT    4
+#  define PIN_POWER     5
+#  define PIN_FOCUS     6
+#  define PIN_SHUTTER   7
+#elif defined(BOARD_MEGA) || defined(BOARD_MEGA2560)
+#  define PIN_DETECT    3
+#  define PIN_POWER	26
+#  define PIN_FOCUS	28
+#  define PIN_SHUTTER   30
+#else
+#  error "Don't know which pins to use on this board!"
+#endif
 
 #define CAM_START       0
 #define CAM_FOCUS       1
