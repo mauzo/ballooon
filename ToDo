@@ -1,8 +1,8 @@
 Camera:
 
 	- Check all delays
-	- Think about flow (power state, etc)
-	- Test error correcting
+	# Think about flow (power state, etc)
+	# Test error correcting
 
 GPS:
 
