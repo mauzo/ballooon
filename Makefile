@@ -39,7 +39,7 @@ SRCS:=		${SRCS:Ngps.cpp} fakegps.cpp
 .endif
 
 USE_ARDUINO=	Wire DallasTemperature OneWire SdFat Core 
-LIBS+=		-lm -lprintf_flt
+LIBS+=		-Wl,-u,vfprintf -lprintf_flt -lm
 
 # Information about the machine we are building for
 
